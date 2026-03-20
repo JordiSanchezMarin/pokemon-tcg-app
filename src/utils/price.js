@@ -1,10 +1,12 @@
 import baseDb from '../bdd/cards_db.json';
 import jungleDb from '../bdd/cards_ju_db.json';
 import fossilDb from '../bdd/cards_foss_db.json';
+import teamRocketDb from '../bdd/cards_team_rocket_db.json';
 
 function getDb(normalizedEd) {
   if (normalizedEd === 'jungle') return jungleDb;
   if (normalizedEd === 'fossil') return fossilDb;
+  if (normalizedEd === 'team_rocket') return teamRocketDb;
   return baseDb;
 }
 
@@ -14,7 +16,7 @@ function normalizeEdicion(card) {
   else if (edicion === 'base2') edicion = 'jungle';
   else if (edicion === 'base3') edicion = 'fossil';
   else if (edicion === 'base4') edicion = 'base2';
-  else if (edicion === 'base5') edicion = 'rocket';
+  else if (edicion === 'base5') edicion = 'team_rocket';
   return edicion;
 }
 
