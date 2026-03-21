@@ -4,6 +4,9 @@ import fossilDb from '../bdd/cards_foss_db.json';
 import teamRocketDb from '../bdd/cards_team_rocket_db.json';
 import neoGenesisEsDb from '../bdd/cards_neo_genesis_db-es.json';
 import neoGenesisEnDb from '../bdd/cards_neo_genesis_db-en.json';
+import ascendedHeroesEsDb from '../bdd/cards_ascended_heroes_db-es.json';
+import ascendedHeroesEnDb from '../bdd/cards_ascended_heroes_db-en.json';
+import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -18,7 +21,9 @@ const DATABASES = {
   jungle: { none: jungleDb },
   fossil: { none: fossilDb },
   team_rocket: { none: teamRocketDb },
-  neo_genesis: { es: neoGenesisEsDb, en: neoGenesisEnDb }
+  neo_genesis: { es: neoGenesisEsDb, en: neoGenesisEnDb },
+  ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
+  phantasmal_flames: { none: phantasmalFlamesEsDb }
 };
 
 export function getAvailableLanguages(card) {
@@ -44,6 +49,8 @@ function normalizeEdicion(card) {
   else if (edicion === 'base4') edicion = 'base2';
   else if (edicion === 'base5') edicion = 'team_rocket';
   else if (edicion === 'neo1') edicion = 'neo_genesis';
+  else if (edicion === 'me02.5') edicion = 'ascended_heroes';
+  else if (edicion === 'me02') edicion = 'phantasmal_flames';
   return edicion;
 }
 
