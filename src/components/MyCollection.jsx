@@ -37,25 +37,30 @@ export default function MyCollection({ collection }) {
   let totalCollectionValue = 0;
   let hasMissingPrices = false;
 
-  const EDITIONS = ['no', 'yes'];
-  const COND_IDS = ['po', 'pl', 'lp', 'gd', 'ex', 'nm', 'mt'];
-
   collectionItems.forEach(item => {
     const card = item.cardData;
     const prices = getAllPrices(card);
-    EDITIONS.forEach(edId => {
-      COND_IDS.forEach(condId => {
-        const key = `${edId}:${condId}`;
-        const condCount = collection.getConditionCount(card.id, key);
-        if (condCount > 0) {
-          const price = parsePrice(prices[edId]?.[condId]);
-          if (price !== null) {
-            totalCollectionValue += price * condCount;
-          } else {
-            hasMissingPrices = true;
-          }
+    
+    // item.conditions contains keys like 'es:no:nm' or 'no:nm'
+    Object.entries(item.conditions).forEach(([key, condCount]) => {
+      if (condCount > 0) {
+        const parts = key.split(':');
+        let lang = 'none', edId, condId;
+        if (parts.length === 3) {
+          [lang, edId, condId] = parts;
+        } else {
+          // Backward compatibility for old keys without language ('no:ex')
+          [edId, condId] = parts;
         }
-      });
+
+        const priceStr = prices[lang]?.[edId]?.[condId];
+        const price = parsePrice(priceStr);
+        if (price !== null) {
+          totalCollectionValue += price * condCount;
+        } else {
+          hasMissingPrices = true;
+        }
+      }
     });
   });
 

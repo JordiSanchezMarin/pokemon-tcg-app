@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPrices, parsePrice, formatPrice } from '../utils/price';
+import { getAllPrices, parsePrice, formatPrice, getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
 import './CollectionCard.css';
 
 const EDITIONS = [
@@ -28,23 +28,82 @@ export default function CollectionCard({ item, collection }) {
   };
 
   const prices = getAllPrices(card);
+  const langs = getAvailableLanguages(card);
   let totalCardValue = 0;
   let hasMissingPrices = false;
 
-  EDITIONS.forEach(({ id: edId }) => {
-    CONDITIONS.forEach(({ id: condId }) => {
-      const key = `${edId}:${condId}`;
-      const condCount = collection.getConditionCount(card.id, key);
-      if (condCount > 0) {
-        const price = parsePrice(prices[edId]?.[condId]);
-        if (price !== null) {
-          totalCardValue += price * condCount;
-        } else {
-          hasMissingPrices = true;
+  langs.forEach(lang => {
+    EDITIONS.forEach(({ id: edId }) => {
+      CONDITIONS.forEach(({ id: condId }) => {
+        const key = getCondKey(lang, edId, condId);
+        const condCount = collection.getConditionCount(card.id, key);
+        if (condCount > 0) {
+          const price = parsePrice(prices[lang]?.[edId]?.[condId]);
+          if (price !== null) {
+            totalCardValue += price * condCount;
+          } else {
+            hasMissingPrices = true;
+          }
         }
-      }
+      });
     });
   });
+
+  const toggleLang = (langId) => {
+    setOpenEditions(prev => ({ ...prev, [`lang-${langId}`]: !prev[`lang-${langId}`] }));
+  };
+
+  const renderEditionGroup = (lang, edId, edLabel) => {
+    const isOpen = !!openEditions[`${lang}-${edId}`];
+    const editionCount = CONDITIONS.reduce((sum, { id: condId }) =>
+      sum + collection.getConditionCount(card.id, getCondKey(lang, edId, condId)), 0);
+    
+    return (
+      <div key={`${lang}-${edId}`} className={`edition-group ${isOpen ? 'open' : ''}`}>
+        <button
+          className="edition-group-toggle"
+          onClick={() => setOpenEditions(prev => ({ ...prev, [`${lang}-${edId}`]: !prev[`${lang}-${edId}`] }))}
+        >
+          <span className="edition-group-label">
+            {edLabel}
+            {editionCount > 0 && <span className="edition-count-badge">{editionCount}</span>}
+          </span>
+          <span className={`accordion-arrow ${isOpen ? 'up' : ''}`}>▾</span>
+        </button>
+        {isOpen && (
+          <div className="edition-group-body">
+            {CONDITIONS.map(({ id: condId, label: condLabel }) => {
+              const key = getCondKey(lang, edId, condId);
+              const condCount = collection.getConditionCount(card.id, key);
+              const price = parsePrice(prices[lang]?.[edId]?.[condId]);
+              return (
+                <div key={key} className={`condition-row ${condCount > 0 ? 'active' : ''}`}>
+                  <div className="condition-info">
+                    <span className="condition-name">{condLabel}</span>
+                    <span className="condition-price">
+                      {price !== null ? formatPrice(price) : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="condition-controls">
+                    <button
+                      onClick={(e) => { e.preventDefault(); collection.removeUnit(card.id, key); }}
+                      disabled={condCount === 0}
+                      className="cond-btn minus"
+                    >−</button>
+                    <span className="cond-count">{condCount}</span>
+                    <button
+                      onClick={(e) => { e.preventDefault(); collection.addUnit(card, lang, edId, condId); }}
+                      className="cond-btn plus"
+                    >+</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="collection-card-wrapper">
@@ -84,51 +143,37 @@ export default function CollectionCard({ item, collection }) {
       </Link>
 
       <div className="conditions-list">
-        {EDITIONS.map(({ id: edId, label: edLabel }) => {
-          const isOpen = !!openEditions[edId];
-          const editionCount = CONDITIONS.reduce((sum, { id: condId }) =>
-            sum + collection.getConditionCount(card.id, `${edId}:${condId}`), 0);
+        {langs.map(lang => {
+          if (lang === 'none') {
+            return EDITIONS.map(({ id: edId, label: edLabel }) => 
+              renderEditionGroup(lang, edId, edLabel)
+            );
+          }
+
+          const isLangOpen = !!openEditions[`lang-${lang}`];
+          const langCount = EDITIONS.reduce((edSum, { id: edId }) => 
+            edSum + CONDITIONS.reduce((condSum, { id: condId }) => 
+              condSum + collection.getConditionCount(card.id, getCondKey(lang, edId, condId))
+            , 0)
+          , 0);
+
           return (
-            <div key={edId} className={`edition-group ${isOpen ? 'open' : ''}`}>
+            <div key={lang} className={`lang-group ${isLangOpen ? 'open' : ''}`}>
               <button
-                className="edition-group-toggle"
-                onClick={() => toggleEdition(edId)}
+                className="lang-group-toggle"
+                onClick={() => toggleLang(lang)}
               >
-                <span className="edition-group-label">
-                  {edLabel}
-                  {editionCount > 0 && <span className="edition-count-badge">{editionCount}</span>}
+                <span className="lang-group-label">
+                  Idioma: {LANG_NAMES[lang]}
+                  {langCount > 0 && <span className="lang-count-badge">{langCount}</span>}
                 </span>
-                <span className={`accordion-arrow ${isOpen ? 'up' : ''}`}>▾</span>
+                <span className={`accordion-arrow ${isLangOpen ? 'up' : ''}`}>▾</span>
               </button>
-              {isOpen && (
-                <div className="edition-group-body">
-            {CONDITIONS.map(({ id: condId, label: condLabel }) => {
-              const key = `${edId}:${condId}`;
-              const condCount = collection.getConditionCount(card.id, key);
-              const price = parsePrice(prices[edId]?.[condId]);
-              return (
-                <div key={key} className={`condition-row ${condCount > 0 ? 'active' : ''}`}>
-                  <div className="condition-info">
-                    <span className="condition-name">{condLabel}</span>
-                    <span className="condition-price">
-                      {price !== null ? formatPrice(price) : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="condition-controls">
-                    <button
-                      onClick={(e) => { e.preventDefault(); collection.removeUnit(card.id, key); }}
-                      disabled={condCount === 0}
-                      className="cond-btn minus"
-                    >−</button>
-                    <span className="cond-count">{condCount}</span>
-                    <button
-                      onClick={(e) => { e.preventDefault(); collection.addUnit(card, edId, condId); }}
-                      className="cond-btn plus"
-                    >+</button>
-                  </div>
-                </div>
-                );
-            })}
+              {isLangOpen && (
+                <div className="lang-group-body">
+                  {EDITIONS.map(({ id: edId, label: edLabel }) => 
+                    renderEditionGroup(lang, edId, edLabel)
+                  )}
                 </div>
               )}
             </div>

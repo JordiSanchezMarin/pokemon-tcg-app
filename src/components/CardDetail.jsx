@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TCGdex from '@tcgdex/sdk';
-import { getAllPrices, getCardMarketUrl } from '../utils/price';
+import { getAllPrices, getCardMarketUrl, getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
 import './CardDetail.css';
 
 const tcgdex = new TCGdex('en');
@@ -15,6 +15,25 @@ export default function CardDetail({ collection }) {
 
   const [selEdition, setSelEdition] = useState('no');
   const [selCondition, setSelCondition] = useState('ex');
+  const [selLang, setSelLang] = useState('none');
+  const [openLangs, setOpenLangs] = useState({});
+
+  const toggleLang = (lang) => {
+    setOpenLangs(prev => ({...prev, [lang]: !prev[lang]}));
+  };
+
+  useEffect(() => {
+    if (card) {
+      const langs = getAvailableLanguages(card);
+      setSelLang(langs[0]);
+      
+      const initialOpen = {};
+      langs.forEach((l, i) => {
+        initialOpen[l] = i === 0;
+      });
+      setOpenLangs(initialOpen);
+    }
+  }, [card]);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -44,12 +63,13 @@ export default function CardDetail({ collection }) {
   const count = collection.getUnitCount(card.id);
   const allPrices = getAllPrices(card);
   const cardMarketUrl = getCardMarketUrl(card);
+  const availableLangs = getAvailableLanguages(card);
 
-  const selKey = `${selEdition}:${selCondition}`;
+  const selKey = getCondKey(selLang, selEdition, selCondition);
   const selCount = collection.getConditionCount(card.id, selKey);
 
   const handleAdd = () => {
-    collection.addUnit(card, selEdition, selCondition);
+    collection.addUnit(card, selLang, selEdition, selCondition);
   };
 
   const handleRemove = () => {
@@ -93,6 +113,20 @@ export default function CardDetail({ collection }) {
           <div className="collection-manager">
             <h3>Gestión de Colección</h3>
             <div className="manager-selectors">
+              {availableLangs.length > 0 && availableLangs[0] !== 'none' && (
+                <label className="selector-label">
+                  Idioma
+                  <select
+                    value={selLang}
+                    onChange={e => setSelLang(e.target.value)}
+                    className="detail-select"
+                  >
+                    {availableLangs.map(lang => (
+                      <option key={lang} value={lang}>{LANG_NAMES[lang]}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <label className="selector-label">
                 Edición
                 <select
@@ -123,7 +157,8 @@ export default function CardDetail({ collection }) {
             </div>
             <div className="manager-controls">
               <span className="owned-text">
-                Poseídas <em>({selEdition === 'yes' ? '1ª Ed.' : 'Normal'})</em>: <strong>{selCount}</strong>
+                Poseídas <em>({selEdition === 'yes' ? '1ª Ed.' : 'Normal'}
+                {selLang !== 'none' ? ` - ${LANG_NAMES[selLang]}` : ''})</em>: <strong>{selCount}</strong>
                 {count > selCount && <span className="total-hint"> · Total: {count}</span>}
               </span>
               <div className="button-group">
@@ -179,113 +214,6 @@ export default function CardDetail({ collection }) {
             )}
           </div>
 
-          {(Object.values(allPrices.no).some(p => p) || Object.values(allPrices.yes).some(p => p)) && (
-            <div className="prices-section">
-              <h3>Precios de Mercado (Cardmarket)</h3>
-              <div className="editions-prices-container">
-                {Object.values(allPrices.no).some(p => p) && (
-                  <div className="edition-price-block">
-                    <h4 className="edition-title">Edición Normal</h4>
-                    <div className="prices-grid">
-                      {allPrices.no.mt && (
-                        <div className="price-item mt">
-                          <span className="price-condition">Mint</span>
-                          <span className="price-value">{allPrices.no.mt}</span>
-                        </div>
-                      )}
-                      {allPrices.no.nm && (
-                        <div className="price-item nm">
-                          <span className="price-condition">Near Mint</span>
-                          <span className="price-value">{allPrices.no.nm}</span>
-                        </div>
-                      )}
-                      {allPrices.no.ex && (
-                        <div className="price-item ex">
-                          <span className="price-condition">Excellent</span>
-                          <span className="price-value">{allPrices.no.ex}</span>
-                        </div>
-                      )}
-                      {allPrices.no.gd && (
-                        <div className="price-item gd">
-                          <span className="price-condition">Good</span>
-                          <span className="price-value">{allPrices.no.gd}</span>
-                        </div>
-                      )}
-                      {allPrices.no.lp && (
-                        <div className="price-item lp">
-                          <span className="price-condition">Light Played</span>
-                          <span className="price-value">{allPrices.no.lp}</span>
-                        </div>
-                      )}
-                      {allPrices.no.pl && (
-                        <div className="price-item pl">
-                          <span className="price-condition">Played</span>
-                          <span className="price-value">{allPrices.no.pl}</span>
-                        </div>
-                      )}
-                      {allPrices.no.po && (
-                        <div className="price-item po">
-                          <span className="price-condition">Poor</span>
-                          <span className="price-value">{allPrices.no.po}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {Object.values(allPrices.yes).some(p => p) && (
-                  <div className="edition-price-block first-edition">
-                    <h4 className="edition-title">1ª Edición</h4>
-                    <div className="prices-grid">
-                      {allPrices.yes.mt && (
-                        <div className="price-item mt">
-                          <span className="price-condition">Mint</span>
-                          <span className="price-value">{allPrices.yes.mt}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.nm && (
-                        <div className="price-item nm">
-                          <span className="price-condition">Near Mint</span>
-                          <span className="price-value">{allPrices.yes.nm}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.ex && (
-                        <div className="price-item ex">
-                          <span className="price-condition">Excellent</span>
-                          <span className="price-value">{allPrices.yes.ex}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.gd && (
-                        <div className="price-item gd">
-                          <span className="price-condition">Good</span>
-                          <span className="price-value">{allPrices.yes.gd}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.lp && (
-                        <div className="price-item lp">
-                          <span className="price-condition">Light Played</span>
-                          <span className="price-value">{allPrices.yes.lp}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.pl && (
-                        <div className="price-item pl">
-                          <span className="price-condition">Played</span>
-                          <span className="price-value">{allPrices.yes.pl}</span>
-                        </div>
-                      )}
-                      {allPrices.yes.po && (
-                        <div className="price-item po">
-                          <span className="price-condition">Poor</span>
-                          <span className="price-value">{allPrices.yes.po}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          
           {card.attacks && card.attacks.length > 0 && (
             <div className="attacks-section">
               <h3>Ataques</h3>
@@ -323,7 +251,131 @@ export default function CardDetail({ collection }) {
             </div>
           )}
         </div>
+          {Object.entries(allPrices).some(([_, langPrices]) => 
+            Object.values(langPrices.no).some(p => p) || Object.values(langPrices.yes).some(p => p)
+          ) && (
+            <div className="prices-section">
+              <h3>Precios de Mercado (Cardmarket)</h3>
+              {Object.entries(allPrices).filter(([_, langPrices]) => 
+                Object.values(langPrices.no).some(p => p) || Object.values(langPrices.yes).some(p => p)
+              ).map(([lang, langPrices]) => (
+                <div key={lang} className="lang-prices-group">
+                  {lang !== 'none' ? (
+                    <button className="lang-collapse-btn" onClick={() => toggleLang(lang)}>
+                      <span>Idioma: {LANG_NAMES[lang]}</span>
+                      <span className={`lang-collapse-arrow ${openLangs[lang] ? 'open' : ''}`}>▼</span>
+                    </button>
+                  ) : null}
+                  {(lang === 'none' || openLangs[lang]) && (
+                    <div className="editions-prices-container">
+                    {Object.values(langPrices.no).some(p => p) && (
+                      <div className="edition-price-block">
+                        <h4 className="edition-title">Edición Normal</h4>
+                        <div className="prices-grid">
+                          {langPrices.no.mt && (
+                            <div className="price-item mt">
+                              <span className="price-condition">Mint</span>
+                              <span className="price-value">{langPrices.no.mt}</span>
+                            </div>
+                          )}
+                          {langPrices.no.nm && (
+                            <div className="price-item nm">
+                              <span className="price-condition">Near Mint</span>
+                              <span className="price-value">{langPrices.no.nm}</span>
+                            </div>
+                          )}
+                          {langPrices.no.ex && (
+                            <div className="price-item ex">
+                              <span className="price-condition">Excellent</span>
+                              <span className="price-value">{langPrices.no.ex}</span>
+                            </div>
+                          )}
+                          {langPrices.no.gd && (
+                            <div className="price-item gd">
+                              <span className="price-condition">Good</span>
+                              <span className="price-value">{langPrices.no.gd}</span>
+                            </div>
+                          )}
+                          {langPrices.no.lp && (
+                            <div className="price-item lp">
+                              <span className="price-condition">Light Played</span>
+                              <span className="price-value">{langPrices.no.lp}</span>
+                            </div>
+                          )}
+                          {langPrices.no.pl && (
+                            <div className="price-item pl">
+                              <span className="price-condition">Played</span>
+                              <span className="price-value">{langPrices.no.pl}</span>
+                            </div>
+                          )}
+                          {langPrices.no.po && (
+                            <div className="price-item po">
+                              <span className="price-condition">Poor</span>
+                              <span className="price-value">{langPrices.no.po}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {Object.values(langPrices.yes).some(p => p) && (
+                      <div className="edition-price-block first-edition">
+                        <h4 className="edition-title">1ª Edición</h4>
+                        <div className="prices-grid">
+                          {langPrices.yes.mt && (
+                            <div className="price-item mt">
+                              <span className="price-condition">Mint</span>
+                              <span className="price-value">{langPrices.yes.mt}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.nm && (
+                            <div className="price-item nm">
+                              <span className="price-condition">Near Mint</span>
+                              <span className="price-value">{langPrices.yes.nm}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.ex && (
+                            <div className="price-item ex">
+                              <span className="price-condition">Excellent</span>
+                              <span className="price-value">{langPrices.yes.ex}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.gd && (
+                            <div className="price-item gd">
+                              <span className="price-condition">Good</span>
+                              <span className="price-value">{langPrices.yes.gd}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.lp && (
+                            <div className="price-item lp">
+                              <span className="price-condition">Light Played</span>
+                              <span className="price-value">{langPrices.yes.lp}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.pl && (
+                            <div className="price-item pl">
+                              <span className="price-condition">Played</span>
+                              <span className="price-value">{langPrices.yes.pl}</span>
+                            </div>
+                          )}
+                          {langPrices.yes.po && (
+                            <div className="price-item po">
+                              <span className="price-condition">Poor</span>
+                              <span className="price-value">{langPrices.yes.po}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
       </div>
     </div>
   );
 }
+

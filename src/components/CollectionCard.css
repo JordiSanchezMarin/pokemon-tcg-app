@@ -117,6 +117,68 @@
   gap: 0.8rem;
 }
 
+.lang-group {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.lang-group.open {
+  border-color: rgba(64, 169, 255, 0.4);
+}
+
+.lang-group-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.8rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.2s;
+}
+
+.lang-group.open .lang-group-toggle {
+  background: rgba(64, 169, 255, 0.15);
+  color: #40a9ff;
+}
+
+.lang-group-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.lang-group-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lang-count-badge {
+  background: #40a9ff;
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 900;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.lang-group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .edition-group {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { getCondKey } from '../utils/price';
 
 // Combined edition:condition keys — e.g. 'no:ex', 'yes:nm'
 const DEFAULT_CONDITIONS = () => ({
@@ -21,8 +22,9 @@ export default function useCollection() {
     localStorage.setItem('pokemon-tcg-collection', JSON.stringify(collection));
   }, [collection]);
 
+  // lang: e.g. 'none', 'es', 'en'
   // edition: 'no' | 'yes'   condition: 'po'|'pl'|'lp'|'gd'|'ex'|'nm'|'mt'
-  const addUnit = (card, edition = 'no', condition = 'ex') => {
+  const addUnit = (card, lang = 'none', edition = 'no', condition = 'ex') => {
     const safeCard = {
       id: card.id,
       name: card.name,
@@ -37,7 +39,7 @@ export default function useCollection() {
       types: card.types
     };
 
-    const key = `${edition}:${condition}`;
+    const key = getCondKey(lang, edition, condition);
 
     setCollection(prev => {
       const current = prev[card.id] || {
