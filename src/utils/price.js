@@ -7,6 +7,7 @@ import neoGenesisEnDb from '../bdd/cards_neo_genesis_db-en.json';
 import ascendedHeroesEsDb from '../bdd/cards_ascended_heroes_db-es.json';
 import ascendedHeroesEnDb from '../bdd/cards_ascended_heroes_db-en.json';
 import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
+import phantasmalFlamesEnDb from '../bdd/cards_phantasmal_flames_db-en.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -23,7 +24,7 @@ const DATABASES = {
   team_rocket: { none: teamRocketDb },
   neo_genesis: { es: neoGenesisEsDb, en: neoGenesisEnDb },
   ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
-  phantasmal_flames: { none: phantasmalFlamesEsDb }
+  phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb }
 };
 
 export function getAvailableLanguages(card) {
