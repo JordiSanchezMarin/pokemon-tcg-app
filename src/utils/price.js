@@ -1,4 +1,5 @@
 import baseDb from '../bdd/cards_db.json';
+import baseSetEnDb from '../bdd/cards_base_set_db-en.json';
 import jungleDb from '../bdd/cards_ju_db.json';
 import fossilDb from '../bdd/cards_foss_db.json';
 import teamRocketDb from '../bdd/cards_team_rocket_db.json';
@@ -19,7 +20,7 @@ export const LANG_NAMES = {
 };
 
 const DATABASES = {
-  base: { none: baseDb },
+  base: { es: baseDb, en: baseSetEnDb },
   jungle: { none: jungleDb },
   fossil: { none: fossilDb },
   team_rocket: { none: teamRocketDb },
