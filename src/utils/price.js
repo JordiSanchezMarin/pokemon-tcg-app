@@ -10,7 +10,7 @@ import ascendedHeroesEnDb from '../bdd/cards_ascended_heroes_db-en.json';
 import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
 import phantasmalFlamesEnDb from '../bdd/cards_phantasmal_flames_db-en.json';
 import neoDiscoveryEnDb from '../bdd/cards_neo_discovery_db-en.json';
-import 151EnDb from '../bdd/cards_151_db-en.json';
+import oneFiveOneEnDb from '../bdd/cards_151_db-en.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -29,7 +29,7 @@ const DATABASES = {
   neo_discovery: { none: neoDiscoveryEnDb },
   ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
   phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb },
-  151: { none: 151EnDb },
+  151: { none: oneFiveOneEnDb },
 };
 
 export function getAvailableLanguages(card) {
