@@ -10,6 +10,7 @@ import ascendedHeroesEnDb from '../bdd/cards_ascended_heroes_db-en.json';
 import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
 import phantasmalFlamesEnDb from '../bdd/cards_phantasmal_flames_db-en.json';
 import neoDiscoveryEnDb from '../bdd/cards_neo_discovery_db-en.json';
+import 151EnDb from '../bdd/cards_151_db-en.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -27,7 +28,8 @@ const DATABASES = {
   neo_genesis: { es: neoGenesisEsDb, en: neoGenesisEnDb },
   neo_discovery: { none: neoDiscoveryEnDb },
   ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
-  phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb }
+  phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb },
+  151: { none: 151EnDb },
 };
 
 export function getAvailableLanguages(card) {
@@ -56,6 +58,7 @@ function normalizeEdicion(card) {
   else if (edicion === 'neo2') edicion = 'neo_discovery';
   else if (edicion === 'me02.5') edicion = 'ascended_heroes';
   else if (edicion === 'me02') edicion = 'phantasmal_flames';
+  else if (edicion === 'sv03.5') edicion = '151';
   return edicion;
 }
 
