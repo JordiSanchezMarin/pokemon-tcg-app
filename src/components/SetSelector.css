@@ -97,3 +97,36 @@
   background: rgba(255, 215, 0, 0.2);
   font-weight: bold;
 }
+
+.set-search-wrapper {
+  padding: 10px;
+  position: sticky;
+  top: 0;
+  background: #2a2a2a;
+  z-index: 2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.set-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.set-search-input:focus {
+  border-color: #ffd700;
+}
+
+.set-option.no-results {
+  color: #aaa;
+  font-style: italic;
+  text-align: center;
+  pointer-events: none;
+}

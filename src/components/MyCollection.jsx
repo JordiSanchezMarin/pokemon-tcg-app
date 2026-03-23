@@ -1,9 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import CollectionCard from './CollectionCard';
+import CollectionSetsManager from './CollectionSetsManager';
 import { getAllPrices, parsePrice, formatPrice } from '../utils/price';
 import './MyCollection.css';
 
 export default function MyCollection({ collection }) {
+  const [activeTab, setActiveTab] = useState('sets');
   const fileInputRef = useRef(null);
 
   const handleExport = () => {
@@ -85,39 +87,62 @@ export default function MyCollection({ collection }) {
         </div>
       </div>
 
-      <div className="collection-stats">
-        <div className="stat-box">
-          <span className="stat-value">{totalCards}</span>
-          <span className="stat-label">Cartas Totales</span>
-        </div>
-        <div className="stat-box">
-          <span className="stat-value">{uniqueCards}</span>
-          <span className="stat-label">Cartas Únicas</span>
-        </div>
-        <div className="stat-box highlight-stat">
-          <span className="stat-value">
-            {formatPrice(totalCollectionValue)}
-            {hasMissingPrices && <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>}
-          </span>
-          <span className="stat-label">Valor Total Estimado</span>
-        </div>
+      <div className="collection-tabs">
+        <button 
+          className={`collection-tab ${activeTab === 'sets' ? 'active' : ''}`}
+          onClick={() => setActiveTab('sets')}
+        >
+          Colecciones
+        </button>
+        <button 
+          className={`collection-tab ${activeTab === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveTab('stats')}
+        >
+          Resumen
+        </button>
       </div>
 
-      {uniqueCards === 0 ? (
-        <div className="empty-collection">
-          <p>Tu colección está vacía. ¡Ve al buscador para añadir cartas!</p>
-        </div>
-      ) : (
-        <div className="card-grid">
-          {collectionItems.map((item) => (
-            <div key={item.cardData.id} className="collection-item">
-              <CollectionCard 
-                item={item} 
-                collection={collection} 
-              />
+      {activeTab === 'sets' && (
+        <CollectionSetsManager collection={collection} />
+      )}
+
+      {activeTab === 'stats' && (
+        <>
+          <div className="collection-stats">
+            <div className="stat-box">
+              <span className="stat-value">{totalCards}</span>
+              <span className="stat-label">Cartas Totales</span>
             </div>
-          ))}
-        </div>
+            <div className="stat-box">
+              <span className="stat-value">{uniqueCards}</span>
+              <span className="stat-label">Cartas Únicas</span>
+            </div>
+            <div className="stat-box highlight-stat">
+              <span className="stat-value">
+                {formatPrice(totalCollectionValue)}
+                {hasMissingPrices && <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>}
+              </span>
+              <span className="stat-label">Valor Total Estimado</span>
+            </div>
+          </div>
+
+          {uniqueCards === 0 ? (
+            <div className="empty-collection">
+              <p>Tu colección está vacía. ¡Ve al buscador para añadir cartas!</p>
+            </div>
+          ) : (
+            <div className="card-grid">
+              {collectionItems.map((item) => (
+                <div key={item.cardData.id} className="collection-item">
+                  <CollectionCard 
+                    item={item} 
+                    collection={collection} 
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -83,7 +83,9 @@ export function getPrices(card) {
 
     // Search in the first available language dictionary
     for (const [lang, db] of Object.entries(dbs)) {
-      const idBase = `${ed}:first-no`;
+      if (!db || db.length === 0) continue;
+      const dbPrefix = db[0].id.split(':')[0];
+      const idBase = `${dbPrefix}:first-no`;
       for (const [key, condId] of Object.entries(conditions)) {
         if (!prices[key]) {
           const fullId = `${idBase}:${condId}:${number}`;
@@ -129,9 +131,11 @@ export function getCardMarketUrl(card) {
   const tryEdicion = (ed) => {
     const dbs = getDbs(ed);
     for (const [lang, db] of Object.entries(dbs)) {
+      if (!db || db.length === 0) continue;
+      const dbPrefix = db[0].id.split(':')[0].toLowerCase();
       const entry = db.find(c => {
         const parts = c.id.toLowerCase().split(':');
-        return parts[0] === ed.toLowerCase() && parts[3] === String(number).toLowerCase();
+        return parts[0] === dbPrefix && parts[3] === String(number).toLowerCase();
       });
       if (entry?.url) return entry.url;
     }
@@ -150,8 +154,8 @@ export function getAllPrices(card) {
   const edicion = normalizeEdicion(card);
   const baseEdicion = edicion.replace(/\d+$/, '');
 
-  const checkEditionLang = (ed, edKey, db) => {
-    const idBase = `${ed}:${edKey}`;
+  const checkEditionLang = (dbPrefix, edKey, db) => {
+    const idBase = `${dbPrefix}:${edKey}`;
     const prices = {};
     let foundAny = false;
     for (const condId of COND_IDS) {
@@ -167,8 +171,10 @@ export function getAllPrices(card) {
     const dbs = getDbs(ed);
     const result = {};
     for (const [lang, db] of Object.entries(dbs)) {
-      const noEd = checkEditionLang(ed, 'first-no', db) || emptyPrices();
-      const yesEd = checkEditionLang(ed, 'first-yes', db) || emptyPrices();
+      if (!db || db.length === 0) continue;
+      const dbPrefix = db[0].id.split(':')[0];
+      const noEd = checkEditionLang(dbPrefix, 'first-no', db) || emptyPrices();
+      const yesEd = checkEditionLang(dbPrefix, 'first-yes', db) || emptyPrices();
       if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
         result[lang] = { no: noEd, yes: yesEd };
       } else {

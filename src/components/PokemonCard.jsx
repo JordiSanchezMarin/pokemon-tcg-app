@@ -1,14 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import AddCardModal from './AddCardModal';
 import './PokemonCard.css';
 
 export default function PokemonCard({ card, collection }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const count = collection.getUnitCount(card.id);
 
-  const handleAdd = (e) => {
+  const handleAddClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    collection.addUnit(card);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmAdd = ({ lang, edition, condition }) => {
+    collection.addUnit(card, lang, edition, condition);
+    setIsModalOpen(false);
   };
 
   const handleRemove = (e) => {
@@ -63,13 +70,21 @@ export default function PokemonCard({ card, collection }) {
         </button>
         <span className="count-display">{count}</span>
         <button 
-          onClick={handleAdd} 
+          onClick={handleAddClick} 
           className="control-btn add-btn"
           aria-label="Añadir a la colección"
         >
           +
         </button>
       </div>
+
+      {isModalOpen && (
+        <AddCardModal 
+          card={card}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={handleConfirmAdd}
+        />
+      )}
     </div>
   );
 }
