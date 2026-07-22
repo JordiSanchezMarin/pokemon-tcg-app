@@ -17,6 +17,8 @@ import destinedRivalsEsDb from '../bdd/cards_destined_rivals_db-es.json';
 import obsidianFlamesEnDb from '../bdd/cards_obsidian_flames_db-en.json';
 import obsidianFlamesEsDb from '../bdd/cards_obsidian_flames_db-es.json';
 import evolvingSkiesEsDb from '../bdd/cards_evolving_skies_db-es.json';
+import pitchBlackEnDb from '../bdd/cards_pitch_black_db-en.json';
+import pitchBlackEsDb from '../bdd/cards_pitch_black_db-es.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -39,6 +41,7 @@ const DATABASES = {
   destined_rivals: { es: destinedRivalsEsDb, en: destinedRivalsEnDb },
   obsidian_flames: { es: obsidianFlamesEsDb, en: obsidianFlamesEnDb },
   evolving_skies: { es: evolvingSkiesEsDb, en: evolvingSkiesEsDb },
+  pitch_black: { es: pitchBlackEsDb, en: pitchBlackEnDb },
 };
 
 export function getAvailableLanguages(card) {
@@ -70,6 +73,7 @@ function normalizeEdicion(card) {
   else if (edicion === 'sv03') edicion = 'obsidian_flames';
   else if (edicion === 'sv03.5') edicion = '151';
   else if (edicion === 'sv10') edicion = 'destined_rivals';
+  else if (edicion === 'me05') edicion = 'pitch_black';
   return edicion;
 }
 
