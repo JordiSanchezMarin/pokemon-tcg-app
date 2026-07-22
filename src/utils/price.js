@@ -11,10 +11,12 @@ import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
 import phantasmalFlamesEnDb from '../bdd/cards_phantasmal_flames_db-en.json';
 import neoDiscoveryEnDb from '../bdd/cards_neo_discovery_db-en.json';
 import oneFiveOneEnDb from '../bdd/cards_151_db-en.json';
+import oneFiveOneEsDb from '../bdd/cards_151_db-es.json';
 import destinedRivalsEnDb from '../bdd/cards_destined_rivals_db-en.json';
 import destinedRivalsEsDb from '../bdd/cards_destined_rivals_db-es.json';
 import obsidianFlamesEnDb from '../bdd/cards_obsidian_flames_db-en.json';
 import obsidianFlamesEsDb from '../bdd/cards_obsidian_flames_db-es.json';
+import evolvingSkiesEsDb from '../bdd/cards_evolving_skies_db-es.json';
 
 export const LANG_NAMES = {
   en: 'Inglés',
@@ -33,9 +35,10 @@ const DATABASES = {
   neo_discovery: { none: neoDiscoveryEnDb },
   ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
   phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb },
-  151: { none: oneFiveOneEnDb },
+  151: { es: oneFiveOneEsDb, en: oneFiveOneEnDb },
   destined_rivals: { es: destinedRivalsEsDb, en: destinedRivalsEnDb },
   obsidian_flames: { es: obsidianFlamesEsDb, en: obsidianFlamesEnDb },
+  evolving_skies: { es: evolvingSkiesEsDb, en: evolvingSkiesEsDb },
 };
 
 export function getAvailableLanguages(card) {
