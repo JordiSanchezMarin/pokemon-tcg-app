@@ -21,7 +21,7 @@ const CONDITIONS = [
 
 export default function CollectionCard({ item, collection }) {
   const card = item.cardData;
-  const count = item.count;
+  const count = collection.getUnitCount(card.id);
   const [openEditions, setOpenEditions] = useState({});
   const { prices, loading: pricesLoading } = useCardPricing(card);
 

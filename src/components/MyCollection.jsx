@@ -37,7 +37,10 @@ export default function MyCollection({ collection }) {
   const { pricesByCardId, loading: pricesLoading } = useCollectionPrices(
     collectionItems.map(item => item.cardData)
   );
-  const totalCards = collectionItems.reduce((acc, item) => acc + item.count, 0);
+  const totalCards = collectionItems.reduce(
+    (total, item) => total + collection.getUnitCount(item.cardData.id),
+    0
+  );
   const uniqueCards = collectionItems.length;
 
   let totalCollectionValue = 0;

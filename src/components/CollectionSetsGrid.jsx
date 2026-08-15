@@ -10,7 +10,7 @@ export default function CollectionSetsGrid({ collection, onSelectSet }) {
   
   const ownedPerSet = {};
   collectionItems.forEach(item => {
-    if (item.count > 0 && item.cardData) {
+    if (collection.getUnitCount(item.cardData?.id) > 0 && item.cardData) {
       const setId = item.cardData.set?.id || item.cardData.id?.split('-')[0];
       if (setId) {
         ownedPerSet[setId] = (ownedPerSet[setId] || 0) + 1;

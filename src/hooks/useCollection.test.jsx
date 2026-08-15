@@ -57,8 +57,9 @@ describe('useCollection', () => {
 
     await waitFor(() => {
       const persisted = JSON.parse(localStorage.getItem('pokemon-tcg-collection'));
-      expect(persisted[card.id].count).toBe(2);
-      expect(persisted[card.id].conditions['no:ex']).toBe(2);
+      expect(persisted.schemaVersion).toBe(1);
+      expect(persisted.collection[card.id].count).toBeUndefined();
+      expect(persisted.collection[card.id].conditions['no:ex']).toBe(2);
     });
   });
 
@@ -76,7 +77,9 @@ describe('useCollection', () => {
       await result.current.importCollection(createJsonFile(JSON.stringify(imported)));
     });
 
-    expect(result.current.collection).toEqual(imported);
+    expect(result.current.getUnitCount(card.id)).toBe(1);
+    expect(result.current.getConditionCount(card.id, 'es:no:gd')).toBe(1);
+    expect(result.current.collection[card.id].count).toBeUndefined();
 
     await expect(
       act(async () => result.current.importCollection(createJsonFile('{invalid')))
