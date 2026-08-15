@@ -53,4 +53,21 @@ describe('price utilities', () => {
     expect(Object.values(simplePrices).every(price => price === null)).toBe(true);
     await expect(getCardMarketUrl(baseSetTwoCard)).resolves.toBeNull();
   });
+
+  it('loads prices and URL for Journey Together cards', async () => {
+    const journeyTogetherCard = {
+      id: 'sv11-142',
+      localId: '142',
+      set: { id: 'sv11' },
+    };
+
+    expect(getAvailableLanguages(journeyTogetherCard)).toEqual(['es', 'en']);
+
+    const prices = await getAllPrices(journeyTogetherCard);
+    const simplePrices = await getPrices(journeyTogetherCard);
+
+    expect(prices.en.no.nm).toBe('0,02 €');
+    expect(simplePrices.nearMint).toBe('0,02 €');
+    await expect(getCardMarketUrl(journeyTogetherCard)).resolves.toContain('/Journey-Together');
+  });
 });
