@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import CollectionCard from './CollectionCard';
 import CollectionSetsManager from './CollectionSetsManager';
-import { getAllPrices, parsePrice, formatPrice } from '../utils/price';
+import { parsePrice, formatPrice } from '../utils/price';
+import { useCollectionPrices } from '../hooks/usePrices';
 import './MyCollection.css';
 
 export default function MyCollection({ collection }) {
@@ -33,6 +34,9 @@ export default function MyCollection({ collection }) {
   };
 
   const collectionItems = Object.values(collection.collection);
+  const { pricesByCardId, loading: pricesLoading } = useCollectionPrices(
+    collectionItems.map(item => item.cardData)
+  );
   const totalCards = collectionItems.reduce((acc, item) => acc + item.count, 0);
   const uniqueCards = collectionItems.length;
 
@@ -41,7 +45,7 @@ export default function MyCollection({ collection }) {
 
   collectionItems.forEach(item => {
     const card = item.cardData;
-    const prices = getAllPrices(card);
+    const prices = pricesByCardId[card.id];
     
     // item.conditions contains keys like 'es:no:nm' or 'no:nm'
     Object.entries(item.conditions).forEach(([key, condCount]) => {
@@ -55,7 +59,7 @@ export default function MyCollection({ collection }) {
           [edId, condId] = parts;
         }
 
-        const priceStr = prices[lang]?.[edId]?.[condId];
+        const priceStr = prices?.[lang]?.[edId]?.[condId];
         const price = parsePrice(priceStr);
         if (price !== null) {
           totalCollectionValue += price * condCount;
@@ -119,8 +123,8 @@ export default function MyCollection({ collection }) {
             </div>
             <div className="stat-box highlight-stat">
               <span className="stat-value">
-                {formatPrice(totalCollectionValue)}
-                {hasMissingPrices && <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>}
+                {pricesLoading ? 'Calculando...' : formatPrice(totalCollectionValue)}
+                {!pricesLoading && hasMissingPrices && <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>}
               </span>
               <span className="stat-label">Valor Total Estimado</span>
             </div>

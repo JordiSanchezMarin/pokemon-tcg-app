@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TCGdex from '@tcgdex/sdk';
-import { getAllPrices, getCardMarketUrl, getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
+import { getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
+import { useCardPricing } from '../hooks/usePrices';
 import './CardDetail.css';
 
 const tcgdex = new TCGdex('en');
@@ -17,6 +18,7 @@ export default function CardDetail({ collection }) {
   const [selCondition, setSelCondition] = useState('ex');
   const [selLang, setSelLang] = useState('none');
   const [openLangs, setOpenLangs] = useState({});
+  const { prices: allPrices, cardMarketUrl } = useCardPricing(card);
 
   const toggleLang = (lang) => {
     setOpenLangs(prev => ({...prev, [lang]: !prev[lang]}));
@@ -61,8 +63,6 @@ export default function CardDetail({ collection }) {
   if (error || !card) return <div className="error-detail">{error || 'Carta no encontrada.'}</div>;
 
   const count = collection.getUnitCount(card.id);
-  const allPrices = getAllPrices(card);
-  const cardMarketUrl = getCardMarketUrl(card);
   const availableLangs = getAvailableLanguages(card);
 
   const selKey = getCondKey(selLang, selEdition, selCondition);

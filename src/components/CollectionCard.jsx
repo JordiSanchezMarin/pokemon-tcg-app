@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllPrices, parsePrice, formatPrice, getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
+import { parsePrice, formatPrice, getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
+import { useCardPricing } from '../hooks/usePrices';
 import './CollectionCard.css';
 
 const EDITIONS = [
@@ -22,12 +23,12 @@ export default function CollectionCard({ item, collection }) {
   const card = item.cardData;
   const count = item.count;
   const [openEditions, setOpenEditions] = useState({});
+  const { prices, loading: pricesLoading } = useCardPricing(card);
 
   const toggleEdition = (edId) => {
     setOpenEditions(prev => ({ ...prev, [edId]: !prev[edId] }));
   };
 
-  const prices = getAllPrices(card);
   const langs = getAvailableLanguages(card);
   let totalCardValue = 0;
   let hasMissingPrices = false;
@@ -135,7 +136,9 @@ export default function CollectionCard({ item, collection }) {
             <div className="card-total-value">
               <span className="value-label">Valor:</span>
               <span className="value-amount">
-                {totalCardValue > 0 || !hasMissingPrices ? formatPrice(totalCardValue) : 'N/A'}
+                {pricesLoading
+                  ? 'Calculando...'
+                  : totalCardValue > 0 || !hasMissingPrices ? formatPrice(totalCardValue) : 'N/A'}
               </span>
             </div>
           </div>

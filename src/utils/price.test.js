@@ -28,11 +28,11 @@ describe('price utilities', () => {
     expect(formatPrice(null)).toBe('N/A');
   });
 
-  it('resolves languages, prices, and URL for a known card', () => {
-    const prices = getAllPrices(baseSetGyarados);
+  it('resolves languages, prices, and URL for a known card', async () => {
+    const prices = await getAllPrices(baseSetGyarados);
 
     expect(getAvailableLanguages(baseSetGyarados)).toEqual(['es', 'en']);
     expect(prices.en.no.po).toBe('2,99 €');
-    expect(getCardMarketUrl(baseSetGyarados)).toContain('/Base-Set/Gyarados');
+    await expect(getCardMarketUrl(baseSetGyarados)).resolves.toContain('/Base-Set/Gyarados');
   });
 });
