@@ -1,10 +1,10 @@
 import React from 'react';
-import { useCardSearchQuery, useSetsQuery } from '../hooks/useTcgdexQueries';
-import PokemonCard from './PokemonCard';
-import SetSelector from './SetSelector';
-import './Search.css';
+import { useCardSearchQuery, useSetsQuery } from '../../hooks/useTcgdexQueries';
+import PokemonCard from '../../components/PokemonCard';
+import SetSelector from '../../components/SetSelector';
+import '../../components/Search.css';
 
-export default function Search({ collection, filters, setFilters }) {
+export default function SearchPage({ collection, filters, setFilters }) {
   const { setName, pokemonName, localId, page } = filters;
   const itemsPerPage = 75;
   const setsQuery = useSetsQuery();
@@ -18,7 +18,7 @@ export default function Search({ collection, filters, setFilters }) {
     : cards.length === itemsPerPage ? page + 1 : page;
 
   const updateFilters = (newValues) => {
-    setFilters(prev => ({ ...prev, ...newValues }));
+    setFilters(previous => ({ ...previous, ...newValues }));
   };
 
   const handlePageChange = (newPage) => {
@@ -31,19 +31,19 @@ export default function Search({ collection, filters, setFilters }) {
   return (
     <div className="search-container">
       <h2>Buscador de Cartas</h2>
-      
+
       <div className="search-filters">
-        <SetSelector 
+        <SetSelector
           sets={sets}
           value={setName}
-          onChange={(val) => updateFilters({ setName: val, page: 1 })}
+          onChange={(value) => updateFilters({ setName: value, page: 1 })}
         />
 
         <input
           type="text"
           placeholder="Nombre del Pokémon"
           value={pokemonName}
-          onChange={(e) => updateFilters({ pokemonName: e.target.value, page: 1 })}
+          onChange={(event) => updateFilters({ pokemonName: event.target.value, page: 1 })}
           className="filter-input"
         />
 
@@ -51,7 +51,7 @@ export default function Search({ collection, filters, setFilters }) {
           type="text"
           placeholder="Número (Local ID)"
           value={localId}
-          onChange={(e) => updateFilters({ localId: e.target.value, page: 1 })}
+          onChange={(event) => updateFilters({ localId: event.target.value, page: 1 })}
           className="filter-input"
         />
       </div>
@@ -65,26 +65,22 @@ export default function Search({ collection, filters, setFilters }) {
 
       <div className="search-results card-grid">
         {cards.map(card => (
-          <PokemonCard 
-            key={card.id} 
-            card={card} 
-            collection={collection} 
-          />
+          <PokemonCard key={card.id} card={card} collection={collection} />
         ))}
       </div>
 
       {cards.length > 0 && (
         <div className="pagination">
-          <button 
-            disabled={page === 1} 
+          <button
+            disabled={page === 1}
             onClick={() => handlePageChange(page - 1)}
             className="page-btn"
           >
             Anterior
           </button>
           <span className="page-info">Página {page} {totalPages > page ? '...' : ''}</span>
-          <button 
-            disabled={page === totalPages} 
+          <button
+            disabled={page === totalPages}
             onClick={() => handlePageChange(page + 1)}
             className="page-btn"
           >

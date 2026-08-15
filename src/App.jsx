@@ -2,10 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import useCollection from './hooks/useCollection';
 
-import Home from './components/Home';
-import Search from './components/Search';
-import MyCollection from './components/MyCollection';
-import CardDetail from './components/CardDetail';
+import HomePage from './features/home/HomePage';
+import SearchPage from './features/search/SearchPage';
+import CollectionPage from './features/collection/CollectionPage';
+import CardDetailPage from './features/card-detail/CardDetailPage';
 
 import './App.css';
 
@@ -50,19 +50,19 @@ function App() {
         
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
             <Route 
               path="/search" 
               element={
-                <Search 
+                <SearchPage
                   collection={collectionData} 
                   filters={searchFilters}
                   setFilters={setSearchFilters}
                 />
               } 
             />
-            <Route path="/collection" element={<MyCollection collection={collectionData} />} />
-            <Route path="/card/:id" element={<CardDetail collection={collectionData} />} />
+            <Route path="/collection" element={<CollectionPage collection={collectionData} />} />
+            <Route path="/card/:id" element={<CardDetailPage collection={collectionData} />} />
           </Routes>
         </main>
       </div>
