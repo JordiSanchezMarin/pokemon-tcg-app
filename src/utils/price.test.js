@@ -15,6 +15,12 @@ const baseSetGyarados = {
   set: { id: 'base1' },
 };
 
+const baseSetTwoCard = {
+  id: 'base4-6',
+  localId: '6',
+  set: { id: 'base4' },
+};
+
 describe('price utilities', () => {
   it('builds condition keys with and without a language', () => {
     expect(getCondKey('es', 'yes', 'nm')).toBe('es:yes:nm');
@@ -37,5 +43,14 @@ describe('price utilities', () => {
     expect(prices.en.no.po).toBe('2,99 €');
     expect(simplePrices.poor).toBe('5,00 €');
     await expect(getCardMarketUrl(baseSetGyarados)).resolves.toContain('/Base-Set/Gyarados');
+  });
+
+  it('does not reuse prices or URLs from another edition', async () => {
+    const prices = await getAllPrices(baseSetTwoCard);
+    const simplePrices = await getPrices(baseSetTwoCard);
+
+    expect(prices).toEqual({});
+    expect(Object.values(simplePrices).every(price => price === null)).toBe(true);
+    await expect(getCardMarketUrl(baseSetTwoCard)).resolves.toBeNull();
   });
 });

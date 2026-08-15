@@ -131,7 +131,6 @@ export async function getPrices(card) {
 
   const number = card.localId;
   const edicion = normalizeEdicion(card);
-  const baseEdicion = edicion.replace(/\d+$/, '');
 
   const checkPrices = async (ed) => {
     const dbs = await getDbs(ed);
@@ -166,11 +165,7 @@ export async function getPrices(card) {
     return foundAny ? prices : null;
   };
 
-  let prices = await checkPrices(edicion);
-  if (!prices && edicion !== baseEdicion) {
-    prices = await checkPrices(baseEdicion);
-  }
-
+  const prices = await checkPrices(edicion);
   return prices || { poor: null, played: null, lightPlayed: null, good: null, excellent: null, nearMint: null, mint: null };
 }
 
@@ -190,7 +185,6 @@ export async function getCardMarketUrl(card) {
   if (!card) return null;
   const edicion = normalizeEdicion(card);
   const number = card.localId;
-  const baseEdicion = edicion.replace(/\d+$/, '');
   const tryEdicion = async (ed) => {
     const dbs = await getDbs(ed);
     if(!dbs) return null;
@@ -201,9 +195,7 @@ export async function getCardMarketUrl(card) {
     }
     return null;
   };
-  return await tryEdicion(edicion)
-    || (edicion !== baseEdicion ? await tryEdicion(baseEdicion) : null)
-    || null;
+  return await tryEdicion(edicion) || null;
 }
 
 export const COND_IDS = ['po', 'pl', 'lp', 'gd', 'ex', 'nm', 'mt'];
@@ -214,7 +206,6 @@ export async function getAllPrices(card) {
 
   const number = card.localId;
   const edicion = normalizeEdicion(card);
-  const baseEdicion = edicion.replace(/\d+$/, '');
 
   const checkEditionLang = (database, edKey) => {
     const idBase = `${database.prefix}:${edKey}`;
@@ -251,10 +242,6 @@ export async function getAllPrices(card) {
   const currentEdPrices = await getLangPrices(edicion);
   if (Object.values(currentEdPrices).some(lang => Object.values(lang.no).some(p => p) || Object.values(lang.yes).some(p => p))) {
     return currentEdPrices;
-  }
-
-  if (edicion !== baseEdicion) {
-    return getLangPrices(baseEdicion);
   }
 
   return currentEdPrices;
