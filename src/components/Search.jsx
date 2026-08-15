@@ -1,84 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import TCGdex, { Query } from '@tcgdex/sdk';
+import React from 'react';
+import { useCardSearchQuery, useSetsQuery } from '../hooks/useTcgdexQueries';
 import PokemonCard from './PokemonCard';
 import SetSelector from './SetSelector';
 import './Search.css';
 
-const tcgdex = new TCGdex('en');
-
 export default function Search({ collection, filters, setFilters }) {
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  
   const { setName, pokemonName, localId, page } = filters;
-  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 75;
-
-  // Opciones de filter
-  const [sets, setSets] = useState([]);
-
-  useEffect(() => {
-    const fetchSets = async () => {
-      try {
-        const result = await tcgdex.set.list();
-        setSets(result || []);
-      } catch (err) {
-        console.error("Error fetching sets:", err);
-      }
-    };
-    
-    fetchSets();
-  }, []);
-
-  const searchCards = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const query = Query.create();
-      
-      if (pokemonName) {
-        query.contains('name', pokemonName);
-      }
-      if (setName) {
-        query.equal('set.id', setName); 
-      }
-      if (localId) {
-        query.equal('localId', localId);
-      }
-
-      query.paginate(page, itemsPerPage);
-
-      const results = await tcgdex.card.list(query);
-      
-      if (results && results.length > 0) {
-        setCards(results);
-        
-        if (results.length === itemsPerPage) {
-          setTotalPages(page + 1);
-        } else {
-          setTotalPages(page);
-        }
-      } else {
-        setCards([]);
-        setTotalPages(1);
-      }
-    } catch (err) {
-      console.error("Error fetching cards:", err);
-      setError("Hubo un error al buscar las cartas.");
-      setCards([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      searchCards();
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [setName, pokemonName, localId, page]);
+  const setsQuery = useSetsQuery();
+  const cardsQuery = useCardSearchQuery(filters, itemsPerPage);
+  const sets = setsQuery.data || [];
+  const cards = cardsQuery.data || [];
+  const loading = cardsQuery.isPending || cardsQuery.isFetching;
+  const error = cardsQuery.isError;
+  const totalPages = cards.length === 0
+    ? 1
+    : cards.length === itemsPerPage ? page + 1 : page;
 
   const updateFilters = (newValues) => {
     setFilters(prev => ({ ...prev, ...newValues }));
@@ -120,7 +57,7 @@ export default function Search({ collection, filters, setFilters }) {
       </div>
 
       {loading && <div className="loading">Buscando cartas...</div>}
-      {error && <div className="error">{error}</div>}
+      {(error || setsQuery.isError) && <div className="error">Hubo un error al obtener las cartas.</div>}
 
       {!loading && !error && cards.length === 0 && (
         <div className="no-results">No se encontraron cartas con estos filtros.</div>

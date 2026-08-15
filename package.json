@@ -4,6 +4,7 @@
   "description": "",
   "main": "vite.config.js",
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "@tcgdex/sdk": "^2.7.1",
     "baseline-browser-mapping": "^2.10.0",
     "browserslist": "^4.28.1",

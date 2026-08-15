@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TCGdex from '@tcgdex/sdk';
 import { getAvailableLanguages, LANG_NAMES, getCondKey } from '../utils/price';
 import { useCardPricing } from '../hooks/usePrices';
+import { useCardQuery } from '../hooks/useTcgdexQueries';
 import './CardDetail.css';
-
-const tcgdex = new TCGdex('en');
 
 export default function CardDetail({ collection }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [card, setCard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const cardQuery = useCardQuery(id);
+  const card = cardQuery.data || null;
 
   const [selEdition, setSelEdition] = useState('no');
   const [selCondition, setSelCondition] = useState('ex');
@@ -37,30 +34,10 @@ export default function CardDetail({ collection }) {
     }
   }, [card]);
 
-  useEffect(() => {
-    const fetchCard = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const result = await tcgdex.card.get(id);
-        if (result) {
-          setCard(result);
-        } else {
-          setError('Carta no encontrada.');
-        }
-      } catch (err) {
-        console.error("Error fetching card details:", err);
-        setError('Error al obtener los detalles de la carta.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCard();
-  }, [id]);
-
-  if (loading) return <div className="loading-detail">Cargando detalles de la carta...</div>;
-  if (error || !card) return <div className="error-detail">{error || 'Carta no encontrada.'}</div>;
+  if (cardQuery.isPending) return <div className="loading-detail">Cargando detalles de la carta...</div>;
+  if (cardQuery.isError || !card) {
+    return <div className="error-detail">{cardQuery.isError ? 'Error al obtener los detalles de la carta.' : 'Carta no encontrada.'}</div>;
+  }
 
   const count = collection.getUnitCount(card.id);
   const availableLangs = getAvailableLanguages(card);
