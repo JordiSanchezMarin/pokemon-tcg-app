@@ -47,6 +47,10 @@ const DATABASE_LOADERS = {
     es: () => import('../bdd/cards_pitch_black_db-es.json'),
     en: () => import('../bdd/cards_pitch_black_db-en.json'),
   },
+  journey_together: {
+    es: () => import('../bdd/cards_journey_together_db-es.json'),
+    en: () => import('../bdd/cards_journey_together_db-en.json'),
+  },
 };
 
 const databaseCache = new Map();
@@ -117,6 +121,7 @@ function normalizeEdicion(card) {
   else if (edicion === 'sv03') edicion = 'obsidian_flames';
   else if (edicion === 'sv03.5') edicion = '151';
   else if (edicion === 'sv10') edicion = 'destined_rivals';
+  else if (edicion === 'sv09') edicion = 'journey_together';
   else if (edicion === 'me05') edicion = 'pitch_black';
   return edicion;
 }
