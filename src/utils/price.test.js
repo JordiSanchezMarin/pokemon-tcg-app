@@ -5,6 +5,7 @@ import {
   getAvailableLanguages,
   getCardMarketUrl,
   getCondKey,
+  getPrices,
   parsePrice,
 } from './price';
 
@@ -30,9 +31,11 @@ describe('price utilities', () => {
 
   it('resolves languages, prices, and URL for a known card', async () => {
     const prices = await getAllPrices(baseSetGyarados);
+    const simplePrices = await getPrices(baseSetGyarados);
 
     expect(getAvailableLanguages(baseSetGyarados)).toEqual(['es', 'en']);
     expect(prices.en.no.po).toBe('2,99 €');
+    expect(simplePrices.poor).toBe('5,00 €');
     await expect(getCardMarketUrl(baseSetGyarados)).resolves.toContain('/Base-Set/Gyarados');
   });
 });

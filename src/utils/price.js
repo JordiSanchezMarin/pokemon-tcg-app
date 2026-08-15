@@ -51,10 +51,31 @@ const DATABASE_LOADERS = {
 
 const databaseCache = new Map();
 
+function indexDatabase(cards) {
+  const byId = new Map();
+  const byNumber = new Map();
+
+  cards.forEach(card => {
+    const normalizedId = card.id.toLowerCase();
+    const number = normalizedId.split(':')[3];
+
+    byId.set(normalizedId, card);
+    if (number && !byNumber.has(number)) {
+      byNumber.set(number, card);
+    }
+  });
+
+  return {
+    prefix: cards[0]?.id.split(':')[0] || '',
+    byId,
+    byNumber,
+  };
+}
+
 function loadDatabase(edition, lang, loader) {
   const cacheKey = `${edition}:${lang}`;
   if (!databaseCache.has(cacheKey)) {
-    databaseCache.set(cacheKey, loader().then(module => module.default));
+    databaseCache.set(cacheKey, loader().then(module => indexDatabase(module.default)));
   }
   return databaseCache.get(cacheKey);
 }
@@ -124,14 +145,13 @@ export async function getPrices(card) {
 
     // Search in the first available language dictionary
     if (dbs) {
-      for (const [lang, db] of Object.entries(dbs)) {
-        if (!db || db.length === 0) continue;
-        const dbPrefix = db[0].id.split(':')[0];
-        const idBase = `${dbPrefix}:first-no`;
+      for (const database of Object.values(dbs)) {
+        if (!database || database.byId.size === 0) continue;
+        const idBase = `${database.prefix}:first-no`;
         for (const [key, condId] of Object.entries(conditions)) {
           if (!prices[key]) {
-            const fullId = `${idBase}:${condId}:${number}`;
-            const foundCard = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
+            const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+            const foundCard = database.byId.get(fullId);
             const offer = getOffer(foundCard);
             if (offer) {
               prices[key] = offer;
@@ -174,13 +194,9 @@ export async function getCardMarketUrl(card) {
   const tryEdicion = async (ed) => {
     const dbs = await getDbs(ed);
     if(!dbs) return null;
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0].toLowerCase();
-      const entry = db.find(c => {
-        const parts = c.id.toLowerCase().split(':');
-        return parts[0] === dbPrefix && parts[3] === String(number).toLowerCase();
-      });
+    for (const database of Object.values(dbs)) {
+      if (!database || database.byNumber.size === 0) continue;
+      const entry = database.byNumber.get(String(number).toLowerCase());
       if (entry?.url) return entry.url;
     }
     return null;
@@ -200,13 +216,13 @@ export async function getAllPrices(card) {
   const edicion = normalizeEdicion(card);
   const baseEdicion = edicion.replace(/\d+$/, '');
 
-  const checkEditionLang = (dbPrefix, edKey, db) => {
-    const idBase = `${dbPrefix}:${edKey}`;
+  const checkEditionLang = (database, edKey) => {
+    const idBase = `${database.prefix}:${edKey}`;
     const prices = {};
     let foundAny = false;
     for (const condId of COND_IDS) {
-      const fullId = `${idBase}:${condId}:${number}`;
-      const found = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
+      const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+      const found = database.byId.get(fullId);
       prices[condId] = getOffer(found);
       if (prices[condId]) foundAny = true;
     }
@@ -217,11 +233,10 @@ export async function getAllPrices(card) {
     const dbs = await getDbs(ed);
     const result = {};
     if (dbs) {
-      for (const [lang, db] of Object.entries(dbs)) {
-        if (!db || db.length === 0) continue;
-        const dbPrefix = db[0].id.split(':')[0];
-        const noEd = checkEditionLang(dbPrefix, 'first-no', db) || emptyPrices();
-        const yesEd = checkEditionLang(dbPrefix, 'first-yes', db) || emptyPrices();
+      for (const [lang, database] of Object.entries(dbs)) {
+        if (!database || database.byId.size === 0) continue;
+        const noEd = checkEditionLang(database, 'first-no') || emptyPrices();
+        const yesEd = checkEditionLang(database, 'first-yes') || emptyPrices();
         if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
           result[lang] = { no: noEd, yes: yesEd };
         } else {
