@@ -1,10 +1,14 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCardSearchQuery, useSetsQuery } from '../../hooks/useTcgdexQueries';
 import PokemonCard from '../../components/PokemonCard';
 import SetSelector from '../../components/SetSelector';
+import { mergeSearchFilters, readSearchFilters } from './searchParams';
 import '../../components/Search.css';
 
-export default function SearchPage({ collection, filters, setFilters }) {
+export default function SearchPage({ collection }) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = readSearchFilters(searchParams);
   const { setName, pokemonName, localId, page } = filters;
   const itemsPerPage = 75;
   const setsQuery = useSetsQuery();
@@ -17,13 +21,16 @@ export default function SearchPage({ collection, filters, setFilters }) {
     ? 1
     : cards.length === itemsPerPage ? page + 1 : page;
 
-  const updateFilters = (newValues) => {
-    setFilters(previous => ({ ...previous, ...newValues }));
+  const updateFilters = (newValues, options = {}) => {
+    setSearchParams(
+      previous => mergeSearchFilters(previous, newValues),
+      { replace: options.replace ?? true }
+    );
   };
 
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= totalPages) {
-      updateFilters({ page: newPage });
+      updateFilters({ page: newPage }, { replace: false });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };

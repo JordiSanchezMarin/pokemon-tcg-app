@@ -20,7 +20,7 @@ function Navigation() {
       <Link to="/search" className={`nav-link ${location.pathname === '/search' ? 'active' : ''}`}>
         Buscador
       </Link>
-      <Link to="/collection" className={`nav-link ${location.pathname === '/collection' ? 'active' : ''}`}>
+      <Link to="/collection" className={`nav-link ${location.pathname.startsWith('/collection') ? 'active' : ''}`}>
         Mi Colección
       </Link>
     </nav>
@@ -29,14 +29,6 @@ function Navigation() {
 
 function App() {
   const collectionData = useCollection();
-
-  // Estado persistente para el buscador durante la navegación
-  const [searchFilters, setSearchFilters] = React.useState({
-    setName: '',
-    pokemonName: '',
-    localId: '',
-    page: 1
-  });
 
   return (
     <Router>
@@ -53,15 +45,10 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route 
               path="/search" 
-              element={
-                <SearchPage
-                  collection={collectionData} 
-                  filters={searchFilters}
-                  setFilters={setSearchFilters}
-                />
-              } 
+              element={<SearchPage collection={collectionData} />}
             />
             <Route path="/collection" element={<CollectionPage collection={collectionData} />} />
+            <Route path="/collection/set/:setId" element={<CollectionPage collection={collectionData} />} />
             <Route path="/card/:id" element={<CardDetailPage collection={collectionData} />} />
           </Routes>
         </main>
