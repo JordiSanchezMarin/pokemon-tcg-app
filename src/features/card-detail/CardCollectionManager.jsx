@@ -3,13 +3,14 @@ import { getAvailableLanguages, getCondKey, LANG_NAMES } from '../../utils/price
 
 export default function CardCollectionManager({ card, collection }) {
   const availableLanguages = getAvailableLanguages(card);
+  const defaultLanguage = availableLanguages[0] || 'none';
   const [edition, setEdition] = useState('no');
   const [condition, setCondition] = useState('ex');
-  const [lang, setLang] = useState(availableLanguages[0] || 'none');
+  const [lang, setLang] = useState(defaultLanguage);
 
   useEffect(() => {
-    setLang(availableLanguages[0] || 'none');
-  }, [card.id]);
+    setLang(defaultLanguage);
+  }, [card.id, defaultLanguage]);
 
   const conditionKey = getCondKey(lang, edition, condition);
   const selectedCount = collection.getConditionCount(card.id, conditionKey);

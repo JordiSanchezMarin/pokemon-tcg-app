@@ -8,6 +8,8 @@ import '../../components/Search.css';
 
 export default function SearchPage({ collection }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const latestSearchParams = React.useRef(searchParams);
+  latestSearchParams.current = searchParams;
   const filters = readSearchFilters(searchParams);
   const { setName, pokemonName, localId, page } = filters;
   const itemsPerPage = 75;
@@ -22,10 +24,9 @@ export default function SearchPage({ collection }) {
     : cards.length === itemsPerPage ? page + 1 : page;
 
   const updateFilters = (newValues, options = {}) => {
-    setSearchParams(
-      previous => mergeSearchFilters(previous, newValues),
-      { replace: options.replace ?? true }
-    );
+    const nextSearchParams = mergeSearchFilters(latestSearchParams.current, newValues);
+    latestSearchParams.current = nextSearchParams;
+    setSearchParams(nextSearchParams, { replace: options.replace ?? true });
   };
 
   const handlePageChange = (newPage) => {

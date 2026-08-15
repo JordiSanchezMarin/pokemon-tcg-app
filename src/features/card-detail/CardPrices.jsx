@@ -37,12 +37,12 @@ export default function CardPrices({ prices }) {
   const pricedLanguages = Object.entries(prices).filter(([, languagePrices]) => (
     hasPrices(languagePrices.no) || hasPrices(languagePrices.yes)
   ));
+  const firstLanguage = pricedLanguages[0]?.[0];
   const [openLanguages, setOpenLanguages] = useState({});
 
   useEffect(() => {
-    const firstLanguage = pricedLanguages[0]?.[0];
     if (firstLanguage) setOpenLanguages({ [firstLanguage]: true });
-  }, [prices]);
+  }, [firstLanguage]);
 
   if (pricedLanguages.length === 0) return null;
 

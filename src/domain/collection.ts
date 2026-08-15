@@ -1,4 +1,29 @@
-export function createDefaultConditions() {
+export interface CardSetData {
+  id: string;
+  name?: string;
+  cardCount?: unknown;
+}
+
+export interface CardData {
+  id: string;
+  name: string;
+  image?: string | null;
+  localId: string | number;
+  rarity?: string | null;
+  set?: CardSetData | null;
+  types?: string[];
+}
+
+export type Conditions = Record<string, number>;
+
+export interface CollectionItem {
+  cardData: CardData;
+  conditions: Conditions;
+}
+
+export type Collection = Record<string, CollectionItem>;
+
+export function createDefaultConditions(): Conditions {
   return {
     'no:po': 0,
     'no:pl': 0,
@@ -17,7 +42,7 @@ export function createDefaultConditions() {
   };
 }
 
-export function sanitizeCard(card) {
+export function sanitizeCard(card: CardData): CardData {
   return {
     id: card.id,
     name: card.name,
@@ -33,19 +58,19 @@ export function sanitizeCard(card) {
   };
 }
 
-export function getItemCount(item) {
+export function getItemCount(item?: Pick<CollectionItem, 'conditions'> | null): number {
   return Object.values(item?.conditions || {}).reduce((total, count) => total + count, 0);
 }
 
-export function getUnitCount(collection, cardId) {
+export function getUnitCount(collection: Collection, cardId: string): number {
   return getItemCount(collection[cardId]);
 }
 
-export function getConditionCount(collection, cardId, conditionKey) {
-  return collection[cardId]?.conditions?.[conditionKey] || 0;
+export function getConditionCount(collection: Collection, cardId: string, conditionKey: string): number {
+  return collection[cardId]?.conditions[conditionKey] || 0;
 }
 
-export function addUnit(collection, card, conditionKey) {
+export function addUnit(collection: Collection, card: CardData, conditionKey: string): Collection {
   const current = collection[card.id];
   const conditions = {
     ...createDefaultConditions(),
@@ -64,7 +89,11 @@ export function addUnit(collection, card, conditionKey) {
   };
 }
 
-export function removeUnit(collection, cardId, conditionKey = null) {
+export function removeUnit(
+  collection: Collection,
+  cardId: string,
+  conditionKey: string | null = null,
+): Collection {
   const current = collection[cardId];
   if (!current) return collection;
 
@@ -72,7 +101,7 @@ export function removeUnit(collection, cardId, conditionKey = null) {
     ...createDefaultConditions(),
     ...current.conditions,
   };
-  const targetKey = conditionKey || Object.keys(conditions).find(key => conditions[key] > 0);
+  const targetKey = conditionKey || Object.keys(conditions).find(key => (conditions[key] || 0) > 0);
 
   if (!targetKey || (conditions[targetKey] || 0) <= 0) return collection;
 
@@ -86,13 +115,13 @@ export function removeUnit(collection, cardId, conditionKey = null) {
       ...current,
       conditions: {
         ...conditions,
-        [targetKey]: conditions[targetKey] - 1,
+        [targetKey]: (conditions[targetKey] || 0) - 1,
       },
     },
   };
 }
 
-export function deleteCard(collection, cardId) {
+export function deleteCard(collection: Collection, cardId: string): Collection {
   if (!collection[cardId]) return collection;
 
   const nextCollection = { ...collection };

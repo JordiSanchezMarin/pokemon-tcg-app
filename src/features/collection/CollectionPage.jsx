@@ -15,7 +15,7 @@ export default function CollectionPage({ collection }) {
       try {
         await collection.importCollection(file);
         alert('Colección importada con éxito');
-      } catch (error) {
+      } catch {
         alert('Error al importar la colección');
       }
       if (fileInputRef.current) fileInputRef.current.value = '';

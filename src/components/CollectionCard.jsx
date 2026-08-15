@@ -25,10 +25,6 @@ export default function CollectionCard({ item, collection }) {
   const [openEditions, setOpenEditions] = useState({});
   const { prices, loading: pricesLoading } = useCardPricing(card);
 
-  const toggleEdition = (edId) => {
-    setOpenEditions(prev => ({ ...prev, [edId]: !prev[edId] }));
-  };
-
   const langs = getAvailableLanguages(card);
   let totalCardValue = 0;
   let hasMissingPrices = false;

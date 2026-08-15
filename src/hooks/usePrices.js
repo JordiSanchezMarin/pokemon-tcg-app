@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getAllPrices, getCardMarketUrl } from '../utils/price';
 
 export function useCardPricing(card) {
@@ -38,13 +38,15 @@ export function useCardPricing(card) {
     return () => {
       cancelled = true;
     };
-  }, [cardId, localId, setId]);
+  }, [card, cardId, localId, setId]);
 
   return state;
 }
 
 export function useCollectionPrices(cards) {
   const [state, setState] = useState({ pricesByCardId: {}, loading: false, error: null });
+  const cardsRef = useRef(cards);
+  cardsRef.current = cards;
   const cardsKey = cards
     .map(card => `${card.id}:${card.set?.id || ''}:${card.localId || ''}`)
     .join('|');
@@ -52,14 +54,16 @@ export function useCollectionPrices(cards) {
   useEffect(() => {
     let cancelled = false;
 
-    if (cards.length === 0) {
+    const currentCards = cardsRef.current;
+
+    if (currentCards.length === 0) {
       setState({ pricesByCardId: {}, loading: false, error: null });
       return () => {};
     }
 
     setState(previous => ({ ...previous, loading: true, error: null }));
 
-    Promise.all(cards.map(async card => [card.id, await getAllPrices(card)]))
+    Promise.all(currentCards.map(async card => [card.id, await getAllPrices(card)]))
       .then(entries => {
         if (!cancelled) {
           setState({ pricesByCardId: Object.fromEntries(entries), loading: false, error: null });

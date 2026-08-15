@@ -40,5 +40,6 @@ export function useCardSearchQuery(filters, itemsPerPage) {
   return useQuery({
     queryKey: ['tcgdex', 'cards', debouncedFilters, itemsPerPage],
     queryFn: () => searchCards({ ...debouncedFilters, itemsPerPage }),
+    placeholderData: previousData => previousData,
   });
 }
