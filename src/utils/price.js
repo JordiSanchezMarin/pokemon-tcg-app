@@ -56,7 +56,7 @@ export function getCondKey(lang, edition, condition) {
 }
 
 function getDbs(normalizedEd) {
-  return DATABASES[normalizedEd] || { none: baseDb };
+  return DATABASES[normalizedEd]; //|| { none: baseDb };
 }
 
 function normalizeEdicion(card) {
@@ -100,22 +100,24 @@ export function getPrices(card) {
     let foundAny = false;
 
     // Search in the first available language dictionary
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0];
-      const idBase = `${dbPrefix}:first-no`;
-      for (const [key, condId] of Object.entries(conditions)) {
-        if (!prices[key]) {
-          const fullId = `${idBase}:${condId}:${number}`;
-          const foundCard = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
-          const offer = getOffer(foundCard);
-          if (offer) {
-            prices[key] = offer;
-            foundAny = true;
+    if (dbs) {
+      for (const [lang, db] of Object.entries(dbs)) {
+        if (!db || db.length === 0) continue;
+        const dbPrefix = db[0].id.split(':')[0];
+        const idBase = `${dbPrefix}:first-no`;
+        for (const [key, condId] of Object.entries(conditions)) {
+          if (!prices[key]) {
+            const fullId = `${idBase}:${condId}:${number}`;
+            const foundCard = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
+            const offer = getOffer(foundCard);
+            if (offer) {
+              prices[key] = offer;
+              foundAny = true;
+            }
           }
         }
+        if (foundAny) break;
       }
-      if (foundAny) break;
     }
 
     return foundAny ? prices : null;
@@ -148,6 +150,7 @@ export function getCardMarketUrl(card) {
   const baseEdicion = edicion.replace(/\d+$/, '');
   const tryEdicion = (ed) => {
     const dbs = getDbs(ed);
+    if(!dbs) return null;
     for (const [lang, db] of Object.entries(dbs)) {
       if (!db || db.length === 0) continue;
       const dbPrefix = db[0].id.split(':')[0].toLowerCase();
@@ -188,17 +191,20 @@ export function getAllPrices(card) {
   const getLangPrices = (ed) => {
     const dbs = getDbs(ed);
     const result = {};
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0];
-      const noEd = checkEditionLang(dbPrefix, 'first-no', db) || emptyPrices();
-      const yesEd = checkEditionLang(dbPrefix, 'first-yes', db) || emptyPrices();
-      if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
-        result[lang] = { no: noEd, yes: yesEd };
-      } else {
-        result[lang] = { no: emptyPrices(), yes: emptyPrices() };
+    if (dbs) {
+      for (const [lang, db] of Object.entries(dbs)) {
+        if (!db || db.length === 0) continue;
+        const dbPrefix = db[0].id.split(':')[0];
+        const noEd = checkEditionLang(dbPrefix, 'first-no', db) || emptyPrices();
+        const yesEd = checkEditionLang(dbPrefix, 'first-yes', db) || emptyPrices();
+        if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
+          result[lang] = { no: noEd, yes: yesEd };
+        } else {
+          result[lang] = { no: emptyPrices(), yes: emptyPrices() };
+        }
       }
     }
+
     return result;
   };
 
