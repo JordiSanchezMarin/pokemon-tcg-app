@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import CollectionSetsGrid from './CollectionSetsGrid';
 import CollectionSetDetail from './CollectionSetDetail';
 
 export default function CollectionSetsManager({ collection }) {
-  const [selectedSetId, setSelectedSetId] = useState(null);
+  const { setId } = useParams();
+  const navigate = useNavigate();
 
-  if (selectedSetId) {
+  if (setId) {
     return (
       <CollectionSetDetail 
-        setId={selectedSetId} 
+        setId={setId}
         collection={collection} 
-        onBack={() => setSelectedSetId(null)} 
+        onBack={() => navigate('/collection')}
       />
     );
   }
@@ -18,7 +20,7 @@ export default function CollectionSetsManager({ collection }) {
   return (
     <CollectionSetsGrid 
       collection={collection} 
-      onSelectSet={setSelectedSetId} 
+      onSelectSet={selectedSetId => navigate(`/collection/set/${encodeURIComponent(selectedSetId)}`)}
     />
   );
 }

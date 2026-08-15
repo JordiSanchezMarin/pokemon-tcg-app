@@ -1,25 +1,3 @@
-import baseDb from '../bdd/cards_db.json';
-import baseSetEnDb from '../bdd/cards_base_set_db-en.json';
-import jungleDb from '../bdd/cards_ju_db.json';
-import fossilDb from '../bdd/cards_foss_db.json';
-import teamRocketDb from '../bdd/cards_team_rocket_db.json';
-import neoGenesisEsDb from '../bdd/cards_neo_genesis_db-es.json';
-import neoGenesisEnDb from '../bdd/cards_neo_genesis_db-en.json';
-import ascendedHeroesEsDb from '../bdd/cards_ascended_heroes_db-es.json';
-import ascendedHeroesEnDb from '../bdd/cards_ascended_heroes_db-en.json';
-import phantasmalFlamesEsDb from '../bdd/cards_phantasmal_flames_db-es.json';
-import phantasmalFlamesEnDb from '../bdd/cards_phantasmal_flames_db-en.json';
-import neoDiscoveryEnDb from '../bdd/cards_neo_discovery_db-en.json';
-import oneFiveOneEnDb from '../bdd/cards_151_db-en.json';
-import oneFiveOneEsDb from '../bdd/cards_151_db-es.json';
-import destinedRivalsEnDb from '../bdd/cards_destined_rivals_db-en.json';
-import destinedRivalsEsDb from '../bdd/cards_destined_rivals_db-es.json';
-import obsidianFlamesEnDb from '../bdd/cards_obsidian_flames_db-en.json';
-import obsidianFlamesEsDb from '../bdd/cards_obsidian_flames_db-es.json';
-import evolvingSkiesEsDb from '../bdd/cards_evolving_skies_db-es.json';
-import pitchBlackEnDb from '../bdd/cards_pitch_black_db-en.json';
-import pitchBlackEsDb from '../bdd/cards_pitch_black_db-es.json';
-
 export const LANG_NAMES = {
   en: 'Inglés',
   es: 'Español',
@@ -28,26 +6,83 @@ export const LANG_NAMES = {
   none: 'Único'
 };
 
-const DATABASES = {
-  base: { es: baseDb, en: baseSetEnDb },
-  jungle: { none: jungleDb },
-  fossil: { none: fossilDb },
-  team_rocket: { none: teamRocketDb },
-  neo_genesis: { es: neoGenesisEsDb, en: neoGenesisEnDb },
-  neo_discovery: { none: neoDiscoveryEnDb },
-  ascended_heroes: { en: ascendedHeroesEnDb, es: ascendedHeroesEsDb },
-  phantasmal_flames: { es: phantasmalFlamesEsDb, en: phantasmalFlamesEnDb },
-  151: { es: oneFiveOneEsDb, en: oneFiveOneEnDb },
-  destined_rivals: { es: destinedRivalsEsDb, en: destinedRivalsEnDb },
-  obsidian_flames: { es: obsidianFlamesEsDb, en: obsidianFlamesEnDb },
-  evolving_skies: { es: evolvingSkiesEsDb, en: evolvingSkiesEsDb },
-  pitch_black: { es: pitchBlackEsDb, en: pitchBlackEnDb },
+const DATABASE_LOADERS = {
+  base: {
+    es: () => import('../bdd/cards_db.json'),
+    en: () => import('../bdd/cards_base_set_db-en.json'),
+  },
+  jungle: { none: () => import('../bdd/cards_ju_db.json') },
+  fossil: { none: () => import('../bdd/cards_foss_db.json') },
+  team_rocket: { none: () => import('../bdd/cards_team_rocket_db.json') },
+  neo_genesis: {
+    es: () => import('../bdd/cards_neo_genesis_db-es.json'),
+    en: () => import('../bdd/cards_neo_genesis_db-en.json'),
+  },
+  neo_discovery: { none: () => import('../bdd/cards_neo_discovery_db-en.json') },
+  ascended_heroes: {
+    en: () => import('../bdd/cards_ascended_heroes_db-en.json'),
+    es: () => import('../bdd/cards_ascended_heroes_db-es.json'),
+  },
+  phantasmal_flames: {
+    es: () => import('../bdd/cards_phantasmal_flames_db-es.json'),
+    en: () => import('../bdd/cards_phantasmal_flames_db-en.json'),
+  },
+  151: {
+    es: () => import('../bdd/cards_151_db-es.json'),
+    en: () => import('../bdd/cards_151_db-en.json'),
+  },
+  destined_rivals: {
+    es: () => import('../bdd/cards_destined_rivals_db-es.json'),
+    en: () => import('../bdd/cards_destined_rivals_db-en.json'),
+  },
+  obsidian_flames: {
+    es: () => import('../bdd/cards_obsidian_flames_db-es.json'),
+    en: () => import('../bdd/cards_obsidian_flames_db-en.json'),
+  },
+  evolving_skies: {
+    es: () => import('../bdd/cards_evolving_skies_db-es.json'),
+    en: () => import('../bdd/cards_evolving_skies_db-es.json'),
+  },
+  pitch_black: {
+    es: () => import('../bdd/cards_pitch_black_db-es.json'),
+    en: () => import('../bdd/cards_pitch_black_db-en.json'),
+  },
 };
+
+const databaseCache = new Map();
+
+function indexDatabase(cards) {
+  const byId = new Map();
+  const byNumber = new Map();
+
+  cards.forEach(card => {
+    const normalizedId = card.id.toLowerCase();
+    const number = normalizedId.split(':')[3];
+
+    byId.set(normalizedId, card);
+    if (number && !byNumber.has(number)) {
+      byNumber.set(number, card);
+    }
+  });
+
+  return {
+    prefix: cards[0]?.id.split(':')[0] || '',
+    byId,
+    byNumber,
+  };
+}
+
+function loadDatabase(edition, lang, loader) {
+  const cacheKey = `${edition}:${lang}`;
+  if (!databaseCache.has(cacheKey)) {
+    databaseCache.set(cacheKey, loader().then(module => indexDatabase(module.default)));
+  }
+  return databaseCache.get(cacheKey);
+}
 
 export function getAvailableLanguages(card) {
   const edicion = normalizeEdicion(card);
-  const dbs = DATABASES[edicion] || { none: baseDb };
-  return Object.keys(dbs);
+  return Object.keys(DATABASE_LOADERS[edicion] || { none: null });
 }
 
 export function getCondKey(lang, edition, condition) {
@@ -55,8 +90,17 @@ export function getCondKey(lang, edition, condition) {
   return `${lang}:${edition}:${condition}`;
 }
 
-function getDbs(normalizedEd) {
-  return DATABASES[normalizedEd] || { none: baseDb };
+async function getDbs(normalizedEd) {
+  const loaders = DATABASE_LOADERS[normalizedEd];
+  if (!loaders) return undefined;
+
+  const entries = await Promise.all(
+    Object.entries(loaders).map(async ([lang, loader]) => [
+      lang,
+      await loadDatabase(normalizedEd, lang, loader),
+    ])
+  );
+  return Object.fromEntries(entries);
 }
 
 function normalizeEdicion(card) {
@@ -82,15 +126,14 @@ function getOffer(c) {
   return c.cheapest_offer_es || c.cheapest_offer_en || c.cheapest_offer_ja || c.cheapest_offer_ko || null;
 }
 
-export function getPrices(card) {
+export async function getPrices(card) {
   if (!card) return { poor: null, played: null, lightPlayed: null, good: null, excellent: null, nearMint: null, mint: null };
 
   const number = card.localId;
   const edicion = normalizeEdicion(card);
-  const baseEdicion = edicion.replace(/\d+$/, '');
 
-  const checkPrices = (ed) => {
-    const dbs = getDbs(ed);
+  const checkPrices = async (ed) => {
+    const dbs = await getDbs(ed);
     const conditions = {
       poor: 'po', played: 'pl', lightPlayed: 'lp',
       good: 'gd', excellent: 'ex', nearMint: 'nm', mint: 'mt'
@@ -100,32 +143,29 @@ export function getPrices(card) {
     let foundAny = false;
 
     // Search in the first available language dictionary
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0];
-      const idBase = `${dbPrefix}:first-no`;
-      for (const [key, condId] of Object.entries(conditions)) {
-        if (!prices[key]) {
-          const fullId = `${idBase}:${condId}:${number}`;
-          const foundCard = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
-          const offer = getOffer(foundCard);
-          if (offer) {
-            prices[key] = offer;
-            foundAny = true;
+    if (dbs) {
+      for (const database of Object.values(dbs)) {
+        if (!database || database.byId.size === 0) continue;
+        const idBase = `${database.prefix}:first-no`;
+        for (const [key, condId] of Object.entries(conditions)) {
+          if (!prices[key]) {
+            const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+            const foundCard = database.byId.get(fullId);
+            const offer = getOffer(foundCard);
+            if (offer) {
+              prices[key] = offer;
+              foundAny = true;
+            }
           }
         }
+        if (foundAny) break;
       }
-      if (foundAny) break;
     }
 
     return foundAny ? prices : null;
   };
 
-  let prices = checkPrices(edicion);
-  if (!prices && edicion !== baseEdicion) {
-    prices = checkPrices(baseEdicion);
-  }
-
+  const prices = await checkPrices(edicion);
   return prices || { poor: null, played: null, lightPlayed: null, good: null, excellent: null, nearMint: null, mint: null };
 }
 
@@ -141,74 +181,67 @@ export function formatPrice(num) {
   return `${num.toFixed(2).replace('.', ',')} €`;
 }
 
-export function getCardMarketUrl(card) {
+export async function getCardMarketUrl(card) {
   if (!card) return null;
   const edicion = normalizeEdicion(card);
   const number = card.localId;
-  const baseEdicion = edicion.replace(/\d+$/, '');
-  const tryEdicion = (ed) => {
-    const dbs = getDbs(ed);
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0].toLowerCase();
-      const entry = db.find(c => {
-        const parts = c.id.toLowerCase().split(':');
-        return parts[0] === dbPrefix && parts[3] === String(number).toLowerCase();
-      });
+  const tryEdicion = async (ed) => {
+    const dbs = await getDbs(ed);
+    if(!dbs) return null;
+    for (const database of Object.values(dbs)) {
+      if (!database || database.byNumber.size === 0) continue;
+      const entry = database.byNumber.get(String(number).toLowerCase());
       if (entry?.url) return entry.url;
     }
     return null;
   };
-  return tryEdicion(edicion) || (edicion !== baseEdicion ? tryEdicion(baseEdicion) : null) || null;
+  return await tryEdicion(edicion) || null;
 }
 
 export const COND_IDS = ['po', 'pl', 'lp', 'gd', 'ex', 'nm', 'mt'];
 
-export function getAllPrices(card) {
+export async function getAllPrices(card) {
   const emptyPrices = () => Object.fromEntries(COND_IDS.map(c => [c, null]));
   if (!card) return { none: { no: emptyPrices(), yes: emptyPrices() } };
 
   const number = card.localId;
   const edicion = normalizeEdicion(card);
-  const baseEdicion = edicion.replace(/\d+$/, '');
 
-  const checkEditionLang = (dbPrefix, edKey, db) => {
-    const idBase = `${dbPrefix}:${edKey}`;
+  const checkEditionLang = (database, edKey) => {
+    const idBase = `${database.prefix}:${edKey}`;
     const prices = {};
     let foundAny = false;
     for (const condId of COND_IDS) {
-      const fullId = `${idBase}:${condId}:${number}`;
-      const found = db.find(c => c.id.toLowerCase() === fullId.toLowerCase());
+      const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+      const found = database.byId.get(fullId);
       prices[condId] = getOffer(found);
       if (prices[condId]) foundAny = true;
     }
     return foundAny ? prices : null;
   };
 
-  const getLangPrices = (ed) => {
-    const dbs = getDbs(ed);
+  const getLangPrices = async (ed) => {
+    const dbs = await getDbs(ed);
     const result = {};
-    for (const [lang, db] of Object.entries(dbs)) {
-      if (!db || db.length === 0) continue;
-      const dbPrefix = db[0].id.split(':')[0];
-      const noEd = checkEditionLang(dbPrefix, 'first-no', db) || emptyPrices();
-      const yesEd = checkEditionLang(dbPrefix, 'first-yes', db) || emptyPrices();
-      if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
-        result[lang] = { no: noEd, yes: yesEd };
-      } else {
-        result[lang] = { no: emptyPrices(), yes: emptyPrices() };
+    if (dbs) {
+      for (const [lang, database] of Object.entries(dbs)) {
+        if (!database || database.byId.size === 0) continue;
+        const noEd = checkEditionLang(database, 'first-no') || emptyPrices();
+        const yesEd = checkEditionLang(database, 'first-yes') || emptyPrices();
+        if (Object.values(noEd).some(p => p) || Object.values(yesEd).some(p => p)) {
+          result[lang] = { no: noEd, yes: yesEd };
+        } else {
+          result[lang] = { no: emptyPrices(), yes: emptyPrices() };
+        }
       }
     }
+
     return result;
   };
 
-  const currentEdPrices = getLangPrices(edicion);
+  const currentEdPrices = await getLangPrices(edicion);
   if (Object.values(currentEdPrices).some(lang => Object.values(lang.no).some(p => p) || Object.values(lang.yes).some(p => p))) {
     return currentEdPrices;
-  }
-
-  if (edicion !== baseEdicion) {
-    return getLangPrices(baseEdicion);
   }
 
   return currentEdPrices;

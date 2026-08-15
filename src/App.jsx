@@ -2,10 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import useCollection from './hooks/useCollection';
 
-import Home from './components/Home';
-import Search from './components/Search';
-import MyCollection from './components/MyCollection';
-import CardDetail from './components/CardDetail';
+import HomePage from './features/home/HomePage';
+import SearchPage from './features/search/SearchPage';
+import CollectionPage from './features/collection/CollectionPage';
+import CardDetailPage from './features/card-detail/CardDetailPage';
 
 import './App.css';
 
@@ -20,7 +20,7 @@ function Navigation() {
       <Link to="/search" className={`nav-link ${location.pathname === '/search' ? 'active' : ''}`}>
         Buscador
       </Link>
-      <Link to="/collection" className={`nav-link ${location.pathname === '/collection' ? 'active' : ''}`}>
+      <Link to="/collection" className={`nav-link ${location.pathname.startsWith('/collection') ? 'active' : ''}`}>
         Mi Colección
       </Link>
     </nav>
@@ -29,14 +29,6 @@ function Navigation() {
 
 function App() {
   const collectionData = useCollection();
-
-  // Estado persistente para el buscador durante la navegación
-  const [searchFilters, setSearchFilters] = React.useState({
-    setName: '',
-    pokemonName: '',
-    localId: '',
-    page: 1
-  });
 
   return (
     <Router>
@@ -50,19 +42,14 @@ function App() {
         
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomePage />} />
             <Route 
               path="/search" 
-              element={
-                <Search 
-                  collection={collectionData} 
-                  filters={searchFilters}
-                  setFilters={setSearchFilters}
-                />
-              } 
+              element={<SearchPage collection={collectionData} />}
             />
-            <Route path="/collection" element={<MyCollection collection={collectionData} />} />
-            <Route path="/card/:id" element={<CardDetail collection={collectionData} />} />
+            <Route path="/collection" element={<CollectionPage collection={collectionData} />} />
+            <Route path="/collection/set/:setId" element={<CollectionPage collection={collectionData} />} />
+            <Route path="/card/:id" element={<CardDetailPage collection={collectionData} />} />
           </Routes>
         </main>
       </div>

@@ -1,20 +1,13 @@
 import React, { useRef, useState } from 'react';
-import CollectionCard from './CollectionCard';
-import CollectionSetsManager from './CollectionSetsManager';
-import { getAllPrices, parsePrice, formatPrice } from '../utils/price';
-import './MyCollection.css';
+import CollectionCard from '../../components/CollectionCard';
+import CollectionSetsManager from '../../components/CollectionSetsManager';
+import { parsePrice, formatPrice } from '../../utils/price';
+import { useCollectionPrices } from '../../hooks/usePrices';
+import '../../components/MyCollection.css';
 
-export default function MyCollection({ collection }) {
+export default function CollectionPage({ collection }) {
   const [activeTab, setActiveTab] = useState('sets');
   const fileInputRef = useRef(null);
-
-  const handleExport = () => {
-    collection.exportCollection();
-  };
-
-  const handleImportClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
@@ -22,46 +15,47 @@ export default function MyCollection({ collection }) {
       try {
         await collection.importCollection(file);
         alert('Colección importada con éxito');
-      } catch (error) {
+      } catch {
         alert('Error al importar la colección');
       }
-      // Reset input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
   const collectionItems = Object.values(collection.collection);
-  const totalCards = collectionItems.reduce((acc, item) => acc + item.count, 0);
+  const { pricesByCardId, loading: pricesLoading } = useCollectionPrices(
+    collectionItems.map(item => item.cardData)
+  );
+  const totalCards = collectionItems.reduce(
+    (total, item) => total + collection.getUnitCount(item.cardData.id),
+    0
+  );
   const uniqueCards = collectionItems.length;
-
   let totalCollectionValue = 0;
   let hasMissingPrices = false;
 
   collectionItems.forEach(item => {
-    const card = item.cardData;
-    const prices = getAllPrices(card);
-    
-    // item.conditions contains keys like 'es:no:nm' or 'no:nm'
-    Object.entries(item.conditions).forEach(([key, condCount]) => {
-      if (condCount > 0) {
-        const parts = key.split(':');
-        let lang = 'none', edId, condId;
-        if (parts.length === 3) {
-          [lang, edId, condId] = parts;
-        } else {
-          // Backward compatibility for old keys without language ('no:ex')
-          [edId, condId] = parts;
-        }
+    const prices = pricesByCardId[item.cardData.id];
 
-        const priceStr = prices[lang]?.[edId]?.[condId];
-        const price = parsePrice(priceStr);
-        if (price !== null) {
-          totalCollectionValue += price * condCount;
-        } else {
-          hasMissingPrices = true;
-        }
+    Object.entries(item.conditions).forEach(([key, conditionCount]) => {
+      if (conditionCount <= 0) return;
+
+      const parts = key.split(':');
+      let lang = 'none';
+      let editionId;
+      let conditionId;
+
+      if (parts.length === 3) {
+        [lang, editionId, conditionId] = parts;
+      } else {
+        [editionId, conditionId] = parts;
+      }
+
+      const price = parsePrice(prices?.[lang]?.[editionId]?.[conditionId]);
+      if (price !== null) {
+        totalCollectionValue += price * conditionCount;
+      } else {
+        hasMissingPrices = true;
       }
     });
   });
@@ -71,30 +65,26 @@ export default function MyCollection({ collection }) {
       <div className="collection-header">
         <h2>Mi Colección</h2>
         <div className="collection-actions">
-          <button onClick={handleExport} className="action-btn export-btn">
-            Exportar JSON
-          </button>
-          <button onClick={handleImportClick} className="action-btn import-btn">
-            Importar JSON
-          </button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            accept=".json" 
-            style={{ display: 'none' }} 
+          <button onClick={collection.exportCollection} className="action-btn export-btn">Exportar JSON</button>
+          <button onClick={() => fileInputRef.current?.click()} className="action-btn import-btn">Importar JSON</button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".json"
+            style={{ display: 'none' }}
           />
         </div>
       </div>
 
       <div className="collection-tabs">
-        <button 
+        <button
           className={`collection-tab ${activeTab === 'sets' ? 'active' : ''}`}
           onClick={() => setActiveTab('sets')}
         >
           Colecciones
         </button>
-        <button 
+        <button
           className={`collection-tab ${activeTab === 'stats' ? 'active' : ''}`}
           onClick={() => setActiveTab('stats')}
         >
@@ -102,9 +92,7 @@ export default function MyCollection({ collection }) {
         </button>
       </div>
 
-      {activeTab === 'sets' && (
-        <CollectionSetsManager collection={collection} />
-      )}
+      {activeTab === 'sets' && <CollectionSetsManager collection={collection} />}
 
       {activeTab === 'stats' && (
         <>
@@ -119,8 +107,10 @@ export default function MyCollection({ collection }) {
             </div>
             <div className="stat-box highlight-stat">
               <span className="stat-value">
-                {formatPrice(totalCollectionValue)}
-                {hasMissingPrices && <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>}
+                {pricesLoading ? 'Calculando...' : formatPrice(totalCollectionValue)}
+                {!pricesLoading && hasMissingPrices && (
+                  <span className="warning-asterisk" title="Faltan precios de algunas cartas">*</span>
+                )}
               </span>
               <span className="stat-label">Valor Total Estimado</span>
             </div>
@@ -132,12 +122,9 @@ export default function MyCollection({ collection }) {
             </div>
           ) : (
             <div className="card-grid">
-              {collectionItems.map((item) => (
+              {collectionItems.map(item => (
                 <div key={item.cardData.id} className="collection-item">
-                  <CollectionCard 
-                    item={item} 
-                    collection={collection} 
-                  />
+                  <CollectionCard item={item} collection={collection} />
                 </div>
               ))}
             </div>

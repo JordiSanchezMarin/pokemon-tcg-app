@@ -1,28 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import TCGdex from '@tcgdex/sdk';
+import React from 'react';
+import { useSetQuery } from '../hooks/useTcgdexQueries';
 import './CollectionSetDetail.css';
 
-const tcgdex = new TCGdex('en');
-
 export default function CollectionSetDetail({ setId, collection, onBack }) {
-  const [setDetails, setSetDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const setQuery = useSetQuery(setId);
+  const setDetails = setQuery.data || null;
 
-  useEffect(() => {
-    const fetchSet = async () => {
-      try {
-        const result = await tcgdex.set.get(setId);
-        setSetDetails(result);
-      } catch (err) {
-        console.error("Error fetching set details:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSet();
-  }, [setId]);
-
-  if (loading) {
+  if (setQuery.isPending) {
     return <div className="loading">Cargando cartas del set...</div>;
   }
 

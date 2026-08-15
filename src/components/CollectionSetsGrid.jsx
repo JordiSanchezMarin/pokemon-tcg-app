@@ -1,32 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import TCGdex from '@tcgdex/sdk';
+import React from 'react';
+import { useSetsQuery } from '../hooks/useTcgdexQueries';
 import './CollectionSetsGrid.css';
 
-const tcgdex = new TCGdex('en');
-
 export default function CollectionSetsGrid({ collection, onSelectSet }) {
-  const [sets, setSets] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSets = async () => {
-      try {
-        const result = await tcgdex.set.list();
-        setSets(result || []);
-      } catch (err) {
-        console.error("Error fetching sets:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSets();
-  }, []);
+  const setsQuery = useSetsQuery();
+  const sets = setsQuery.data || [];
 
   const collectionItems = Object.values(collection.collection || {});
   
   const ownedPerSet = {};
   collectionItems.forEach(item => {
-    if (item.count > 0 && item.cardData) {
+    if (collection.getUnitCount(item.cardData?.id) > 0 && item.cardData) {
       const setId = item.cardData.set?.id || item.cardData.id?.split('-')[0];
       if (setId) {
         ownedPerSet[setId] = (ownedPerSet[setId] || 0) + 1;
@@ -34,8 +18,12 @@ export default function CollectionSetsGrid({ collection, onSelectSet }) {
     }
   });
 
-  if (loading) {
+  if (setsQuery.isPending) {
     return <div className="loading">Cargando colecciones...</div>;
+  }
+
+  if (setsQuery.isError) {
+    return <div className="error">Error al cargar las colecciones.</div>;
   }
 
   return (
