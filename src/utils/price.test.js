@@ -15,9 +15,9 @@ const baseSetGyarados = {
   set: { id: 'base1' },
 };
 
-const baseSetTwoCard = {
-  id: 'base4-6',
-  localId: '6',
+const baseSetTwoNidoking = {
+  id: 'base4-11',
+  localId: '11',
   set: { id: 'base4' },
 };
 
@@ -51,13 +51,14 @@ describe('price utilities', () => {
     await expect(getCardMarketUrl(baseSetGyarados)).resolves.toContain('/Base-Set/Gyarados');
   });
 
-  it('does not reuse prices or URLs from another edition', async () => {
-    const prices = await getAllPrices(baseSetTwoCard);
-    const simplePrices = await getPrices(baseSetTwoCard);
+  it('loads prices and URL for Base Set 2 cards', async () => {
+    const prices = await getAllPrices(baseSetTwoNidoking);
+    const simplePrices = await getPrices(baseSetTwoNidoking);
 
-    expect(prices).toEqual({});
-    expect(Object.values(simplePrices).every(price => price === null)).toBe(true);
-    await expect(getCardMarketUrl(baseSetTwoCard)).resolves.toBeNull();
+    expect(getAvailableLanguages(baseSetTwoNidoking)).toEqual(['es', 'en']);
+    expect(prices.es.no.po).toBe('7,00 €');
+    expect(simplePrices.poor).toBe('7,00 €');
+    await expect(getCardMarketUrl(baseSetTwoNidoking)).resolves.toContain('/Base-Set-2/Nidoking-B211');
   });
 
   it('loads prices and URL for Journey Together cards', async () => {
