@@ -36,6 +36,26 @@ export default function SearchPage({ collection }) {
     }
   };
 
+  const paginationControls = cards.length > 0 && (
+    <div className="pagination">
+      <button
+        disabled={page === 1}
+        onClick={() => handlePageChange(page - 1)}
+        className="page-btn"
+      >
+        Anterior
+      </button>
+      <span className="page-info">Página {page} {totalPages > page ? '...' : ''}</span>
+      <button
+        disabled={page === totalPages}
+        onClick={() => handlePageChange(page + 1)}
+        className="page-btn"
+      >
+        Siguiente
+      </button>
+    </div>
+  );
+
   return (
     <div className="search-container">
       <h2>Buscador de Cartas</h2>
@@ -64,6 +84,8 @@ export default function SearchPage({ collection }) {
         />
       </div>
 
+      {paginationControls}
+
       {loading && <div className="loading">Buscando cartas...</div>}
       {(error || setsQuery.isError) && <div className="error">Hubo un error al obtener las cartas.</div>}
 
@@ -77,25 +99,7 @@ export default function SearchPage({ collection }) {
         ))}
       </div>
 
-      {cards.length > 0 && (
-        <div className="pagination">
-          <button
-            disabled={page === 1}
-            onClick={() => handlePageChange(page - 1)}
-            className="page-btn"
-          >
-            Anterior
-          </button>
-          <span className="page-info">Página {page} {totalPages > page ? '...' : ''}</span>
-          <button
-            disabled={page === totalPages}
-            onClick={() => handlePageChange(page + 1)}
-            className="page-btn"
-          >
-            Siguiente
-          </button>
-        </div>
-      )}
+      {paginationControls}
     </div>
   );
 }
