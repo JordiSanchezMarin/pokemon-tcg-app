@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useSetQuery } from '../hooks/useTcgdexQueries';
 import './CollectionSetDetail.css';
 
@@ -47,7 +48,7 @@ export default function CollectionSetDetail({ setId, collection, onBack }) {
 
       <div className="set-cards-grid">
         {cardItems.map(card => (
-          <div key={card.id} className={`set-card-item ${card.isOwned ? 'owned' : 'missing'}`}>
+          <Link key={card.id} to={`/card/${card.id}`} className={`set-card-item ${card.isOwned ? 'owned' : 'missing'}`}>
             <div className="set-card-image-wrapper">
               {card.image ? (
                 <img 
@@ -76,7 +77,7 @@ export default function CollectionSetDetail({ setId, collection, onBack }) {
               <span className="set-card-number">{card.localId}</span>
               <span className="set-card-name" title={card.name}>{card.name}</span>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>

@@ -21,6 +21,12 @@ const baseSetTwoCard = {
   set: { id: 'base4' },
 };
 
+const wizardsBlackStarPromoElectabuzz = {
+  id: 'basep-2',
+  localId: '2',
+  set: { id: 'basep' },
+};
+
 describe('price utilities', () => {
   it('builds condition keys with and without a language', () => {
     expect(getCondKey('es', 'yes', 'nm')).toBe('es:yes:nm');
@@ -56,9 +62,9 @@ describe('price utilities', () => {
 
   it('loads prices and URL for Journey Together cards', async () => {
     const journeyTogetherCard = {
-      id: 'sv11-142',
+      id: 'sv09-142',
       localId: '142',
-      set: { id: 'sv11' },
+      set: { id: 'sv09' },
     };
 
     expect(getAvailableLanguages(journeyTogetherCard)).toEqual(['es', 'en']);
@@ -69,5 +75,31 @@ describe('price utilities', () => {
     expect(prices.en.no.nm).toBe('0,02 €');
     expect(simplePrices.nearMint).toBe('0,02 €');
     await expect(getCardMarketUrl(journeyTogetherCard)).resolves.toContain('/Journey-Together');
+  });
+
+  it('loads zero-padded Journey Together prices from unpadded local IDs', async () => {
+    const journeyTogetherCard = {
+      id: 'sv09-59',
+      localId: '59',
+      set: { id: 'sv09' },
+    };
+
+    const prices = await getAllPrices(journeyTogetherCard);
+    const simplePrices = await getPrices(journeyTogetherCard);
+
+    expect(prices.es.no.nm).toBe('0,02 €');
+    expect(simplePrices.nearMint).toBe('0,02 €');
+    await expect(getCardMarketUrl(journeyTogetherCard)).resolves.toContain('/Journey-Together/Shuppet-JTG059');
+  });
+
+  it('loads prices and URL for Wizards Black Star Promos cards', async () => {
+    expect(getAvailableLanguages(wizardsBlackStarPromoElectabuzz)).toEqual(['es', 'en']);
+
+    const prices = await getAllPrices(wizardsBlackStarPromoElectabuzz);
+    const simplePrices = await getPrices(wizardsBlackStarPromoElectabuzz);
+
+    expect(prices.es.no.po).toBe('0,50 €');
+    expect(simplePrices.poor).toBe('0,50 €');
+    await expect(getCardMarketUrl(wizardsBlackStarPromoElectabuzz)).resolves.toContain('/Wizards-Black-Star-Promos');
   });
 });

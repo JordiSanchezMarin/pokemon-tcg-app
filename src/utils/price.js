@@ -14,6 +14,10 @@ const DATABASE_LOADERS = {
   jungle: { none: () => import('../bdd/cards_ju_db.json') },
   fossil: { none: () => import('../bdd/cards_foss_db.json') },
   team_rocket: { none: () => import('../bdd/cards_team_rocket_db.json') },
+  wizards_black_star_promos: {
+    es: () => import('../bdd/cards_wizards_black_star_promos_db-es.json'),
+    en: () => import('../bdd/cards_wizards_black_star_promos_db-en.json'),
+  },
   neo_genesis: {
     es: () => import('../bdd/cards_neo_genesis_db-es.json'),
     en: () => import('../bdd/cards_neo_genesis_db-en.json'),
@@ -84,6 +88,21 @@ function loadDatabase(edition, lang, loader) {
   return databaseCache.get(cacheKey);
 }
 
+function getCardNumberCandidates(card) {
+  const candidates = [card.localId, card.id?.split('-').pop()]
+    .filter(Boolean)
+    .map(number => String(number).toLowerCase());
+
+  candidates.forEach(number => {
+    if (/^\d+$/.test(number)) {
+      candidates.push(number.replace(/^0+(?=\d)/, ''));
+      candidates.push(number.padStart(3, '0'));
+    }
+  });
+
+  return [...new Set(candidates)];
+}
+
 export function getAvailableLanguages(card) {
   const edicion = normalizeEdicion(card);
   return Object.keys(DATABASE_LOADERS[edicion] || { none: null });
@@ -114,6 +133,7 @@ function normalizeEdicion(card) {
   else if (edicion === 'base3') edicion = 'fossil';
   else if (edicion === 'base4') edicion = 'base2';
   else if (edicion === 'base5') edicion = 'team_rocket';
+  else if (edicion === 'basep') edicion = 'wizards_black_star_promos';
   else if (edicion === 'neo1') edicion = 'neo_genesis';
   else if (edicion === 'neo2') edicion = 'neo_discovery';
   else if (edicion === 'me02') edicion = 'phantasmal_flames';
@@ -134,7 +154,7 @@ function getOffer(c) {
 export async function getPrices(card) {
   if (!card) return { poor: null, played: null, lightPlayed: null, good: null, excellent: null, nearMint: null, mint: null };
 
-  const number = card.localId;
+  const numbers = getCardNumberCandidates(card);
   const edicion = normalizeEdicion(card);
 
   const checkPrices = async (ed) => {
@@ -154,12 +174,15 @@ export async function getPrices(card) {
         const idBase = `${database.prefix}:first-no`;
         for (const [key, condId] of Object.entries(conditions)) {
           if (!prices[key]) {
-            const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
-            const foundCard = database.byId.get(fullId);
-            const offer = getOffer(foundCard);
-            if (offer) {
-              prices[key] = offer;
-              foundAny = true;
+            for (const number of numbers) {
+              const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+              const foundCard = database.byId.get(fullId);
+              const offer = getOffer(foundCard);
+              if (offer) {
+                prices[key] = offer;
+                foundAny = true;
+                break;
+              }
             }
           }
         }
@@ -189,14 +212,16 @@ export function formatPrice(num) {
 export async function getCardMarketUrl(card) {
   if (!card) return null;
   const edicion = normalizeEdicion(card);
-  const number = card.localId;
+  const numbers = getCardNumberCandidates(card);
   const tryEdicion = async (ed) => {
     const dbs = await getDbs(ed);
     if(!dbs) return null;
     for (const database of Object.values(dbs)) {
       if (!database || database.byNumber.size === 0) continue;
-      const entry = database.byNumber.get(String(number).toLowerCase());
-      if (entry?.url) return entry.url;
+      for (const number of numbers) {
+        const entry = database.byNumber.get(number);
+        if (entry?.url) return entry.url;
+      }
     }
     return null;
   };
@@ -209,7 +234,7 @@ export async function getAllPrices(card) {
   const emptyPrices = () => Object.fromEntries(COND_IDS.map(c => [c, null]));
   if (!card) return { none: { no: emptyPrices(), yes: emptyPrices() } };
 
-  const number = card.localId;
+  const numbers = getCardNumberCandidates(card);
   const edicion = normalizeEdicion(card);
 
   const checkEditionLang = (database, edKey) => {
@@ -217,10 +242,15 @@ export async function getAllPrices(card) {
     const prices = {};
     let foundAny = false;
     for (const condId of COND_IDS) {
-      const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
-      const found = database.byId.get(fullId);
-      prices[condId] = getOffer(found);
-      if (prices[condId]) foundAny = true;
+      for (const number of numbers) {
+        const fullId = `${idBase}:${condId}:${number}`.toLowerCase();
+        const found = database.byId.get(fullId);
+        prices[condId] = getOffer(found);
+        if (prices[condId]) {
+          foundAny = true;
+          break;
+        }
+      }
     }
     return foundAny ? prices : null;
   };
