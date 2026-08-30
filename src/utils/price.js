@@ -13,6 +13,9 @@ const DATABASE_LOADERS = {
   },
   jungle: { none: () => import('../bdd/cards_ju_db.json') },
   fossil: { none: () => import('../bdd/cards_foss_db.json') },
+  base_set_2: {
+    en: () => import('../bdd/cards_base_set_2_db-en.json'),
+  },
   team_rocket: { none: () => import('../bdd/cards_team_rocket_db.json') },
   wizards_black_star_promos: {
     es: () => import('../bdd/cards_wizards_black_star_promos_db-es.json'),
@@ -131,7 +134,7 @@ function normalizeEdicion(card) {
   if (edicion === 'base1') edicion = 'base';
   else if (edicion === 'base2') edicion = 'jungle';
   else if (edicion === 'base3') edicion = 'fossil';
-  else if (edicion === 'base4') edicion = 'base2';
+  else if (edicion === 'base4') edicion = 'base_set_2';
   else if (edicion === 'base5') edicion = 'team_rocket';
   else if (edicion === 'basep') edicion = 'wizards_black_star_promos';
   else if (edicion === 'neo1') edicion = 'neo_genesis';
