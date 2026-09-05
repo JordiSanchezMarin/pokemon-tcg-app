@@ -8,7 +8,7 @@ export const LANG_NAMES = {
 
 const DATABASE_LOADERS = {
   base: {
-    es: () => import('../bdd/cards_db.json'),
+    es: () => import('../bdd/cards_base_set_db-es.json'),
     en: () => import('../bdd/cards_base_set_db-en.json'),
   },
   jungle: { none: () => import('../bdd/cards_ju_db.json') },
